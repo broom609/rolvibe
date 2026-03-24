@@ -15,6 +15,11 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/dashboard'
+  const authOrigin =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : 'https://rolvibe.com'
+  const authRedirect = `${authOrigin}/auth/callback?next=${next}`
 
   useEffect(() => {
     const supabase = createClient()
@@ -29,7 +34,7 @@ function LoginForm() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${next}` },
+      options: { emailRedirectTo: authRedirect },
     })
     setLoading(false)
     if (error) toast.error(error.message)
@@ -41,7 +46,7 @@ function LoginForm() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${next}` },
+      options: { redirectTo: authRedirect },
     })
     if (error) { toast.error(error.message); setGoogleLoading(false) }
   }
