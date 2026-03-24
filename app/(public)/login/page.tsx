@@ -1,5 +1,6 @@
 'use client'
 
+import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -49,7 +50,7 @@ function LoginForm() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF2D9B] via-[#6B21E8] to-[#00B4FF] flex items-center justify-center text-white font-black text-xl mx-auto mb-4">R</div>
+          <RolvibeLogo size={56} className="justify-center mb-4" priority />
           <h1 className="text-xl font-bold text-[#F4F4F5] mb-1">Sign in to Rolvibe</h1>
           <p className="text-sm text-[#A1A1AA]">Discover and share vibe-coded apps</p>
         </div>

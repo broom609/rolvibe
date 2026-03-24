@@ -1,0 +1,46 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="magentaGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(150 315) rotate(12) scale(118 148)">
+      <stop stop-color="#FF2DB6"/>
+      <stop offset="1" stop-color="#FF2DB6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyanGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 290) rotate(18) scale(152 176)">
+      <stop stop-color="#00D8FF"/>
+      <stop offset="1" stop-color="#00D8FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringStroke" x1="128" y1="358" x2="396" y2="138" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF139B"/>
+      <stop offset="0.5" stop-color="#6225FF"/>
+      <stop offset="1" stop-color="#1DE2FF"/>
+    </linearGradient>
+    <linearGradient id="coreFill" x1="140" y1="146" x2="378" y2="394" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A0B42"/>
+      <stop offset="0.5" stop-color="#2E2580"/>
+      <stop offset="1" stop-color="#203F99"/>
+    </linearGradient>
+    <linearGradient id="monogramFill" x1="144" y1="170" x2="382" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#150933"/>
+      <stop offset="0.5" stop-color="#2E227A"/>
+      <stop offset="1" stop-color="#24104E"/>
+    </linearGradient>
+    <linearGradient id="swooshFill" x1="98" y1="354" x2="224" y2="274" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF0F96"/>
+      <stop offset="0.54" stop-color="#FF4AD0"/>
+      <stop offset="1" stop-color="#FFD6FF"/>
+    </linearGradient>
+    <linearGradient id="orbFill" x1="352" y1="126" x2="392" y2="168" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00C6FF"/>
+      <stop offset="0.5" stop-color="#6B39FF"/>
+      <stop offset="1" stop-color="#FF39C6"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="152" cy="315" rx="110" ry="126" fill="url(#magentaGlow)" opacity="0.9"/>
+  <ellipse cx="362" cy="286" rx="142" ry="162" fill="url(#cyanGlow)" opacity="0.9"/>
+  <circle cx="256" cy="256" r="166" stroke="url(#ringStroke)" stroke-width="36" opacity="0.24"/>
+  <circle cx="256" cy="256" r="154" stroke="url(#ringStroke)" stroke-width="28"/>
+  <circle cx="256" cy="256" r="127" fill="url(#coreFill)"/>
+  <circle cx="378" cy="150" r="30" fill="url(#orbFill)"/>
+  <circle cx="390" cy="138" r="11" fill="#FFE9FF" fill-opacity="0.9"/>
+  <path d="M142 175H300C352 175 388 204 388 248C388 292 352 322 300 322H244L211 356H286L344 420H287L232 343H160L160 302L219 245H298C323 245 338 233 338 215C338 197 323 186 298 186H142V175Z" fill="url(#monogramFill)"/>
+  <path d="M109 372L220 281L176 336L72 392L109 372Z" fill="url(#swooshFill)"/>
+</svg>

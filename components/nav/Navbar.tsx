@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth()
@@ -37,10 +38,12 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#FF2D9B] via-[#6B21E8] to-[#00B4FF] flex items-center justify-center text-white font-black text-sm">
-            R
-          </div>
-          <span className="font-bold text-[#F4F4F5] hidden sm:block">Rolvibe</span>
+          <RolvibeLogo
+            size={30}
+            withWordmark
+            priority
+            wordmarkClassName="hidden sm:block"
+          />
         </Link>
 
         {/* Search */}
