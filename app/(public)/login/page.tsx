@@ -51,7 +51,7 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <RolvibeLogo
-            size={72}
+            size={64}
             className="justify-center mb-4"
             priority
           />

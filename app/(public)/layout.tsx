@@ -11,7 +11,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <RolvibeLogo
-                size={36}
+                size={30}
                 withWordmark
                 wordmarkClassName="text-sm font-semibold"
               />
