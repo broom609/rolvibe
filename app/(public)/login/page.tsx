@@ -4,6 +4,7 @@ import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getClientAuthOrigin, normalizeNextPath } from '@/lib/auth'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -14,11 +15,8 @@ function LoginForm() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') || '/dashboard'
-  const authOrigin =
-    process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3000'
-      : 'https://rolvibe.com'
+  const next = normalizeNextPath(searchParams.get('next'))
+  const authOrigin = getClientAuthOrigin()
   const authRedirect = `${authOrigin}/auth/callback?next=${next}`
 
   useEffect(() => {
