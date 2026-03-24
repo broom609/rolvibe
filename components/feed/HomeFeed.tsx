@@ -30,14 +30,22 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Hero strip */}
-      <div className="mb-10">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-1">
-          <span className="gradient-text">Where vibe coders get discovered.</span>
-        </h1>
-        <p className="text-[var(--text-secondary)] text-sm mb-5">Find apps people built this week.</p>
+      <div className="relative mb-10 overflow-hidden">
+        {/* Background orbs */}
+        <div className="absolute -top-16 -left-20 w-80 h-80 gradient-orb opacity-20" style={{ background: 'radial-gradient(circle, #FF2D9B, transparent 70%)' }} />
+        <div className="absolute -top-8 left-40 w-96 h-96 gradient-orb opacity-15" style={{ background: 'radial-gradient(circle, #6B21E8, transparent 70%)' }} />
+        <div className="absolute -top-20 right-0 w-64 h-64 gradient-orb opacity-15" style={{ background: 'radial-gradient(circle, #00B4FF, transparent 70%)' }} />
 
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-2">
+        <div className="relative">
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 leading-tight">
+            <span className="gradient-text">Where vibe coders</span>
+            <br />
+            <span className="gradient-text">get discovered.</span>
+          </h1>
+          <p className="text-[var(--text-secondary)] text-sm sm:text-base mb-5">Find apps built with AI this week — try them, save them, share them.</p>
+
+          {/* Category pills */}
+          <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveCategory(undefined)}
             className={`px-3 py-1 text-sm rounded-full font-medium transition-all ${
@@ -57,6 +65,7 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
               active={activeCategory === cat}
             />
           ))}
+        </div>
         </div>
       </div>
 
@@ -84,6 +93,19 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
           href={`/category/${cat.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
         />
       ))}
+
+      {/* Creator CTA */}
+      {!activeCategory && (
+        <div className="gradient-border rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-[var(--text-primary)] mb-1">Built something with AI?</h3>
+            <p className="text-sm text-[var(--text-secondary)]">Submit your app and get discovered by thousands of builders.</p>
+          </div>
+          <Link href="/dashboard/submit" className="btn-primary text-sm flex-shrink-0">
+            List Your App →
+          </Link>
+        </div>
+      )}
 
       {/* Infinite scroll grid */}
       <section>

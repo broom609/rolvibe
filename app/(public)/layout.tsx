@@ -1,9 +1,10 @@
 import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
 import { Navbar } from '@/components/nav/Navbar'
+import { MobileBottomNav } from '@/components/nav/MobileBottomNav'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-16 sm:pb-0">
       <Navbar />
       <main>{children}</main>
       <footer className="border-t border-[var(--border)] mt-20 py-8">
@@ -26,6 +27,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </div>
         </div>
       </footer>
+      <MobileBottomNav />
     </div>
   )
 }

@@ -103,10 +103,30 @@ textarea {
 }
 
 .card-hover {
-  transition: transform 120ms ease-out, box-shadow 120ms ease-out, background-color 120ms ease-out;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out;
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(107,33,232,0.2);
   background-color: var(--card-hover);
+  border-color: rgba(107,33,232,0.35);
+}
+
+.thumbnail-zoom {
+  transition: transform 300ms ease-out;
+}
+.group:hover .thumbnail-zoom {
+  transform: scale(1.04);
+}
+
+::selection {
+  background-color: rgba(107,33,232,0.35);
+  color: #F4F4F5;
+}
+
+/* Gradient glow orb */
+.gradient-orb {
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
 }

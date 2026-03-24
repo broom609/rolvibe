@@ -37,7 +37,7 @@ export function AppCard({ app, size = 'normal' }: AppCardProps) {
             src={app.thumbnail_url}
             alt={app.name}
             fill
-            className="object-cover"
+            className="object-cover thumbnail-zoom"
             loading="lazy"
             sizes={isFeatured ? '256px' : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw'}
           />
