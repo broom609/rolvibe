@@ -21,7 +21,7 @@ export function RolvibeLogo({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <Image
-        src="/rolvibe-logo.svg"
+        src="/rolvibe-logo.png"
         alt="Rolvibe logo"
         width={size}
         height={size}
