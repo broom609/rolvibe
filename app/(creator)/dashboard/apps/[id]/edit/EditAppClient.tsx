@@ -47,42 +47,42 @@ export function EditAppClient({ app }: { app: App }) {
   }
 
   return (
-    <form onSubmit={handleSave} className="bg-[#1A1A1E] border border-[#2A2A30] rounded-2xl p-6 space-y-4">
+    <form onSubmit={handleSave} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
       {[
         { name: 'name', label: 'App Name', type: 'input' },
         { name: 'tagline', label: 'Tagline', type: 'input' },
         { name: 'app_url', label: 'App URL', type: 'input' },
       ].map(({ name, label }) => (
         <div key={name}>
-          <label className="text-sm font-medium text-[#A1A1AA] block mb-1.5">{label}</label>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">{label}</label>
           <input
             value={form[name as keyof typeof form] as string}
             onChange={e => setForm(prev => ({ ...prev, [name]: e.target.value }))}
-            className="w-full bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-3 py-2.5 text-sm text-[#F4F4F5] focus:outline-none focus:border-[#6B21E8]"
+            className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
           />
         </div>
       ))}
       <div>
-        <label className="text-sm font-medium text-[#A1A1AA] block mb-1.5">Description</label>
+        <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Description</label>
         <textarea
           value={form.description}
           onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
           rows={4}
-          className="w-full bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-3 py-2.5 text-sm text-[#F4F4F5] focus:outline-none focus:border-[#6B21E8] resize-none"
+          className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8] resize-none"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-[#A1A1AA] block mb-1.5">Category</label>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Category</label>
           <select value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))}
-            className="w-full bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-3 py-2.5 text-sm text-[#F4F4F5] focus:outline-none focus:border-[#6B21E8]">
+            className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]">
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-sm font-medium text-[#A1A1AA] block mb-1.5">Built With</label>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Built With</label>
           <select value={form.built_with} onChange={e => setForm(prev => ({ ...prev, built_with: e.target.value }))}
-            className="w-full bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-3 py-2.5 text-sm text-[#F4F4F5] focus:outline-none focus:border-[#6B21E8]">
+            className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]">
             {BUILT_WITH_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>

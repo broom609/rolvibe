@@ -22,7 +22,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#1A1A1E] transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)] transition-colors"
               >
                 <Icon size={15} />
                 {label}

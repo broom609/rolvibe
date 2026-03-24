@@ -16,9 +16,9 @@ export function FeedSection({ title, apps, loading, href, size = 'normal' }: Fee
   return (
     <section className="mb-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[#F4F4F5]">{title}</h2>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
         {href && (
-          <Link href={href} className="flex items-center gap-0.5 text-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors">
+          <Link href={href} className="flex items-center gap-0.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
             Browse all <ChevronRight size={14} />
           </Link>
         )}
@@ -37,7 +37,7 @@ export function FeedSection({ title, apps, loading, href, size = 'normal' }: Fee
             ))
         }
         {!loading && apps.length === 0 && (
-          <p className="text-sm text-[#71717A] py-4">Nothing here yet.</p>
+          <p className="text-sm text-[var(--text-muted)] py-4">Nothing here yet.</p>
         )}
       </div>
     </section>

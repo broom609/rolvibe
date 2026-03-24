@@ -5,6 +5,7 @@ interface RolvibeLogoProps {
   size?: number
   withWordmark?: boolean
   className?: string
+  iconClassName?: string
   wordmarkClassName?: string
   priority?: boolean
 }
@@ -13,6 +14,7 @@ export function RolvibeLogo({
   size = 32,
   withWordmark = false,
   className,
+  iconClassName,
   wordmarkClassName,
   priority = false,
 }: RolvibeLogoProps) {
@@ -24,10 +26,13 @@ export function RolvibeLogo({
         width={size}
         height={size}
         priority={priority}
-        className="shrink-0"
+        className={cn(
+          'shrink-0 object-contain',
+          iconClassName
+        )}
       />
       {withWordmark && (
-        <span className={cn('font-bold text-[#F4F4F5]', wordmarkClassName)}>
+        <span className={cn('font-bold text-[var(--text-primary)]', wordmarkClassName)}>
           Rolvibe
         </span>
       )}

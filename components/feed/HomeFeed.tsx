@@ -34,7 +34,7 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
         <h1 className="text-2xl sm:text-3xl font-bold mb-1">
           <span className="gradient-text">Where vibe coders get discovered.</span>
         </h1>
-        <p className="text-[#A1A1AA] text-sm mb-5">Find apps people built this week.</p>
+        <p className="text-[var(--text-secondary)] text-sm mb-5">Find apps people built this week.</p>
 
         {/* Category pills */}
         <div className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
             className={`px-3 py-1 text-sm rounded-full font-medium transition-all ${
               !activeCategory
                 ? 'bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] text-white'
-                : 'bg-[#1A1A1E] text-[#A1A1AA] border border-[#2A2A30] hover:border-[#3A3A40]'
+                : 'bg-[var(--card)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-strong)]'
             }`}
           >
             All
@@ -87,7 +87,7 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
 
       {/* Infinite scroll grid */}
       <section>
-        <h2 className="text-lg font-semibold text-[#F4F4F5] mb-4">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
           {activeCategory ? activeCategory : 'All Apps'}
         </h2>
         <FeedGrid

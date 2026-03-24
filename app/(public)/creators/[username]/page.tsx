@@ -60,27 +60,27 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
         </div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold text-[#F4F4F5]">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">
               {profile.display_name || profile.username}
             </h1>
             {profile.is_verified && <ShieldCheck size={18} className="text-blue-400" />}
           </div>
-          <p className="text-[#71717A] mb-2">@{profile.username}</p>
-          {profile.bio && <p className="text-[#A1A1AA] text-sm mb-3 max-w-xl">{profile.bio}</p>}
+          <p className="text-[var(--text-muted)] mb-2">@{profile.username}</p>
+          {profile.bio && <p className="text-[var(--text-secondary)] text-sm mb-3 max-w-xl">{profile.bio}</p>}
 
-          <div className="flex flex-wrap gap-4 text-sm text-[#71717A]">
+          <div className="flex flex-wrap gap-4 text-sm text-[var(--text-muted)]">
             <span>Joined {formatDate(profile.created_at)}</span>
             <span>{apps.length} apps</span>
             <span>{formatTryCount(totalTries)} total tries</span>
             {profile.website_url && (
               <a href={profile.website_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-[#A1A1AA] transition-colors">
+                className="flex items-center gap-1 hover:text-[var(--text-secondary)] transition-colors">
                 <Globe size={13} /> Website
               </a>
             )}
             {profile.twitter_handle && (
               <a href={`https://twitter.com/${profile.twitter_handle}`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-[#A1A1AA] transition-colors">
+                className="flex items-center gap-1 hover:text-[var(--text-secondary)] transition-colors">
                 <Twitter size={13} /> @{profile.twitter_handle}
               </a>
             )}
@@ -89,10 +89,10 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
       </div>
 
       {/* Apps grid */}
-      <h2 className="text-lg font-semibold text-[#F4F4F5] mb-4">Apps by {profile.display_name || profile.username}</h2>
+      <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Apps by {profile.display_name || profile.username}</h2>
       {apps.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-[#A1A1AA]">No apps published yet.</p>
+          <p className="text-[var(--text-secondary)]">No apps published yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

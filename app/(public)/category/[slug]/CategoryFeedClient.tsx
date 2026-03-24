@@ -16,15 +16,15 @@ export function CategoryFeedClient({ category }: CategoryFeedClientProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <nav className="flex items-center gap-1 text-sm text-[#71717A] mb-6">
-        <Link href="/" className="hover:text-[#A1A1AA] transition-colors">Home</Link>
+      <nav className="flex items-center gap-1 text-sm text-[var(--text-muted)] mb-6">
+        <Link href="/" className="hover:text-[var(--text-secondary)] transition-colors">Home</Link>
         <ChevronRight size={14} />
-        <span className="text-[#A1A1AA]">{category}</span>
+        <span className="text-[var(--text-secondary)]">{category}</span>
       </nav>
 
       <div className="flex items-center gap-3 mb-6">
         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${colorClass}`}>{category}</span>
-        <h1 className="text-xl font-bold text-[#F4F4F5]">{category} Apps</h1>
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">{category} Apps</h1>
       </div>
 
       <FeedGrid

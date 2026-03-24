@@ -28,8 +28,8 @@ export function FeedGrid({
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-[#A1A1AA]">Failed to load apps.</p>
-        <button onClick={onRetry} className="flex items-center gap-2 text-sm text-[#F4F4F5] bg-[#1A1A1E] border border-[#2A2A30] px-4 py-2 rounded-lg hover:bg-[#2A2A30] transition-colors">
+        <p className="text-[var(--text-secondary)]">Failed to load apps.</p>
+        <button onClick={onRetry} className="flex items-center gap-2 text-sm text-[var(--text-primary)] bg-[var(--card)] border border-[var(--border)] px-4 py-2 rounded-lg hover:bg-[var(--muted-surface)] transition-colors">
           <RefreshCw size={14} /> Try again
         </button>
       </div>
@@ -47,8 +47,8 @@ export function FeedGrid({
   if (!loading && apps.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2">
-        <p className="text-[#F4F4F5] font-semibold">No apps found</p>
-        <p className="text-sm text-[#71717A]">Be the first to submit an app in this category.</p>
+        <p className="text-[var(--text-primary)] font-semibold">No apps found</p>
+        <p className="text-sm text-[var(--text-muted)]">Be the first to submit an app in this category.</p>
       </div>
     )
   }
@@ -63,7 +63,7 @@ export function FeedGrid({
       <div ref={sentinelRef} className="h-12 mt-4" />
 
       {!hasMore && apps.length > 0 && (
-        <p className="text-center text-sm text-[#71717A] py-6">You've seen everything. Go build something.</p>
+        <p className="text-center text-sm text-[var(--text-muted)] py-6">You've seen everything. Go build something.</p>
       )}
     </>
   )

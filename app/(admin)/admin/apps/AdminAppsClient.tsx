@@ -33,8 +33,8 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
             onClick={() => setStatusFilter(s)}
             className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
               statusFilter === s
-                ? 'bg-[#2A2A30] text-[#F4F4F5]'
-                : 'text-[#71717A] hover:text-[#A1A1AA] hover:bg-[#1A1A1E]'
+                ? 'bg-[var(--muted-surface)] text-[var(--text-primary)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--card)]'
             }`}
           >
             {s || 'All'} ({(s ? apps.filter(a => a.status === s) : apps).length})
@@ -42,10 +42,10 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
         ))}
       </div>
 
-      <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl overflow-hidden">
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="border-b border-[#2A2A30]">
-            <tr className="text-xs text-[#71717A] text-left">
+          <thead className="border-b border-[var(--border)]">
+            <tr className="text-xs text-[var(--text-muted)] text-left">
               <th className="px-4 py-3 font-medium">App</th>
               <th className="px-4 py-3 font-medium">Creator</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -53,27 +53,27 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#2A2A30]">
+          <tbody className="divide-y divide-[var(--border)]">
             {filtered.map(app => (
-              <tr key={app.id} className="hover:bg-[#202026] transition-colors">
+              <tr key={app.id} className="hover:bg-[var(--card-hover)] transition-colors">
                 <td className="px-4 py-3">
-                  <p className="font-medium text-[#F4F4F5] max-w-[200px] truncate">{app.name}</p>
-                  <p className="text-xs text-[#71717A] max-w-[200px] truncate">{app.tagline}</p>
+                  <p className="font-medium text-[var(--text-primary)] max-w-[200px] truncate">{app.name}</p>
+                  <p className="text-xs text-[var(--text-muted)] max-w-[200px] truncate">{app.tagline}</p>
                 </td>
-                <td className="px-4 py-3 text-[#A1A1AA] text-xs">
+                <td className="px-4 py-3 text-[var(--text-secondary)] text-xs">
                   @{app.creator?.username}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={app.status} />
                 </td>
-                <td className="px-4 py-3 text-[#A1A1AA] hidden md:table-cell">
+                <td className="px-4 py-3 text-[var(--text-secondary)] hidden md:table-cell">
                   {formatTryCount(app.try_count || 0)}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
                     {app.status !== 'hidden' && (
                       <button onClick={() => updateApp(app.id, { status: 'hidden' })}
-                        className="text-xs text-[#71717A] hover:text-[#A1A1AA] transition-colors">Hide</button>
+                        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Hide</button>
                     )}
                     {app.status === 'hidden' && (
                       <button onClick={() => updateApp(app.id, { status: 'active' })}
@@ -81,7 +81,7 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
                     )}
                     <button
                       onClick={() => updateApp(app.id, { is_featured: !app.is_featured })}
-                      className={`text-xs transition-colors ${app.is_featured ? 'text-yellow-400 hover:text-yellow-300' : 'text-[#71717A] hover:text-[#A1A1AA]'}`}
+                      className={`text-xs transition-colors ${app.is_featured ? 'text-yellow-400 hover:text-yellow-300' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                     >
                       {app.is_featured ? 'Unfeature' : 'Feature'}
                     </button>
@@ -96,7 +96,7 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div className="text-center py-8 text-[#71717A] text-sm">No apps in this status.</div>
+          <div className="text-center py-8 text-[var(--text-muted)] text-sm">No apps in this status.</div>
         )}
       </div>
     </div>

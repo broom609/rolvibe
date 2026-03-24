@@ -57,8 +57,8 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
 
   if (apps.length === 0) {
     return (
-      <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-12 text-center">
-        <p className="text-[#A1A1AA]">Queue is empty. All caught up! 🎉</p>
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-12 text-center">
+        <p className="text-[var(--text-secondary)]">Queue is empty. All caught up! 🎉</p>
       </div>
     )
   }
@@ -66,17 +66,17 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
   return (
     <div className="space-y-4">
       {apps.map(app => (
-        <div key={app.id} className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-5">
+        <div key={app.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h3 className="font-semibold text-[#F4F4F5]">{app.name}</h3>
+                <h3 className="font-semibold text-[var(--text-primary)]">{app.name}</h3>
                 <CategoryPill category={app.category} />
                 {app.built_with && <BuiltWithBadge builtWith={app.built_with} />}
                 <PriceBadge pricingType={app.pricing_type} priceCents={app.price_cents} subscriptionPriceCents={app.subscription_price_cents} />
               </div>
-              <p className="text-sm text-[#A1A1AA] mb-1">{app.tagline}</p>
-              <p className="text-xs text-[#71717A] mb-3">
+              <p className="text-sm text-[var(--text-secondary)] mb-1">{app.tagline}</p>
+              <p className="text-xs text-[var(--text-muted)] mb-3">
                 By @{app.creator?.username} · Submitted {formatDate(app.submitted_at)}
               </p>
               <div className="flex flex-wrap items-center gap-2">
@@ -84,7 +84,7 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
                   href={app.app_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-[#F4F4F5] border border-[#2A2A30] hover:border-[#3A3A40] px-2 py-1 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] hover:border-[var(--border-strong)] px-2 py-1 rounded-lg transition-colors"
                 >
                   <ExternalLink size={11} /> Preview App
                 </a>
@@ -96,7 +96,7 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
                       value={rejectionReason}
                       onChange={e => setRejectionReason(e.target.value)}
                       placeholder="Reason for rejection..."
-                      className="flex-1 bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-2 py-1 text-xs text-[#F4F4F5] placeholder-[#71717A] focus:outline-none focus:border-red-600 min-w-0"
+                      className="flex-1 bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-2 py-1 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-red-600 min-w-0"
                     />
                     <button
                       onClick={() => handleReject(app.id)}
@@ -107,7 +107,7 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
                     </button>
                     <button
                       onClick={() => { setRejectingId(null); setRejectionReason('') }}
-                      className="text-xs text-[#71717A] hover:text-[#A1A1AA] transition-colors"
+                      className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                     >
                       Cancel
                     </button>

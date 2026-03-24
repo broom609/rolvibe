@@ -21,16 +21,16 @@ export default async function AdminReportsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">Reports</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Reports</h1>
       {(!reports || reports.length === 0) ? (
-        <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-12 text-center">
-          <p className="text-[#A1A1AA]">No open reports. 🎉</p>
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-12 text-center">
+          <p className="text-[var(--text-secondary)]">No open reports. 🎉</p>
         </div>
       ) : (
-        <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl overflow-hidden">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-[#2A2A30]">
-              <tr className="text-xs text-[#71717A] text-left">
+            <thead className="border-b border-[var(--border)]">
+              <tr className="text-xs text-[var(--text-muted)] text-left">
                 <th className="px-4 py-3 font-medium">App</th>
                 <th className="px-4 py-3 font-medium">Reason</th>
                 <th className="px-4 py-3 font-medium hidden md:table-cell">Reporter</th>
@@ -38,11 +38,11 @@ export default async function AdminReportsPage() {
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#2A2A30]">
+            <tbody className="divide-y divide-[var(--border)]">
               {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-[#202026] transition-colors">
+                <tr key={report.id} className="hover:bg-[var(--card-hover)] transition-colors">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-[#F4F4F5] truncate max-w-[150px]">
+                    <p className="font-medium text-[var(--text-primary)] truncate max-w-[150px]">
                       {(report.app as { name: string })?.name}
                     </p>
                   </td>
@@ -51,13 +51,13 @@ export default async function AdminReportsPage() {
                       {report.reason}
                     </span>
                     {report.details && (
-                      <p className="text-xs text-[#71717A] mt-1 max-w-[200px] truncate">{report.details}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] truncate">{report.details}</p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#A1A1AA] hidden md:table-cell">
+                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)] hidden md:table-cell">
                     @{(report.reporter as { username: string })?.username || 'anonymous'}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#A1A1AA] hidden md:table-cell">
+                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)] hidden md:table-cell">
                     {formatDate(report.created_at)}
                   </td>
                   <td className="px-4 py-3">

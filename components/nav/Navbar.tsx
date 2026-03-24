@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth()
@@ -34,14 +35,18 @@ export function Navbar() {
   }, [])
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0E0E10]/95 backdrop-blur border-b border-[#2A2A30]">
+    <nav
+      className="sticky top-0 z-50 backdrop-blur border-b border-[var(--border)]"
+      style={{ backgroundColor: 'var(--nav-bg)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <RolvibeLogo
-            size={30}
+            size={40}
             withWordmark
             priority
+            iconClassName="scale-[1.18] brightness-125 contrast-125 saturate-150 drop-shadow-[0_0_16px_rgba(255,45,155,0.28)]"
             wordmarkClassName="hidden sm:block"
           />
         </Link>
@@ -49,19 +54,21 @@ export function Navbar() {
         {/* Search */}
         <form onSubmit={handleSearch} className="flex-1 max-w-lg mx-auto">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]" size={15} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
             <input
               type="search"
               placeholder="Search apps..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-[#1A1A1E] border border-[#2A2A30] rounded-lg py-2 pl-9 pr-4 text-sm text-[#F4F4F5] placeholder-[#71717A] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
+              className="w-full bg-[var(--card)] border border-[var(--border)] rounded-lg py-2 pl-9 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
             />
           </div>
         </form>
 
         {/* Right side */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          <ThemeToggle />
+
           <Link
             href="/dashboard/submit"
             className="btn-primary text-sm py-2 px-3 hidden sm:flex"
@@ -83,29 +90,29 @@ export function Navbar() {
                 )}
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-10 w-48 bg-[#1A1A1E] border border-[#2A2A30] rounded-xl shadow-xl py-1 z-50">
-                  <div className="px-3 py-2 border-b border-[#2A2A30]">
-                    <p className="text-sm font-medium text-[#F4F4F5] truncate">
+                <div className="absolute right-0 top-10 w-48 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl py-1 z-50">
+                  <div className="px-3 py-2 border-b border-[var(--border)]">
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {profile?.display_name || profile?.username || user.email}
                     </p>
                     {profile?.username && (
-                      <p className="text-xs text-[#71717A] truncate">@{profile.username}</p>
+                      <p className="text-xs text-[var(--text-muted)] truncate">@{profile.username}</p>
                     )}
                   </div>
-                  <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-sm text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#2A2A30] transition-colors" onClick={() => setMenuOpen(false)}>
+                  <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors" onClick={() => setMenuOpen(false)}>
                     <LayoutDashboard size={14} /> Dashboard
                   </Link>
-                  <Link href="/dashboard/settings" className="flex items-center gap-2 px-3 py-2 text-sm text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#2A2A30] transition-colors" onClick={() => setMenuOpen(false)}>
+                  <Link href="/dashboard/settings" className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors" onClick={() => setMenuOpen(false)}>
                     <Settings size={14} /> Settings
                   </Link>
                   {profile?.role === 'admin' && (
-                    <Link href="/admin/queue" className="flex items-center gap-2 px-3 py-2 text-sm text-pink-400 hover:text-pink-300 hover:bg-[#2A2A30] transition-colors" onClick={() => setMenuOpen(false)}>
+                    <Link href="/admin/queue" className="flex items-center gap-2 px-3 py-2 text-sm text-pink-400 hover:text-pink-300 hover:bg-[var(--muted-surface)] transition-colors" onClick={() => setMenuOpen(false)}>
                       <User size={14} /> Admin
                     </Link>
                   )}
                   <button
                     onClick={() => { signOut(); setMenuOpen(false) }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#2A2A30] transition-colors"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors"
                   >
                     <LogOut size={14} /> Sign out
                   </button>
@@ -115,7 +122,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="text-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors px-3 py-2"
+              className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-3 py-2"
             >
               Sign in
             </Link>

@@ -37,21 +37,21 @@ export function AppPreview({ appUrl, appName, appId, onClose }: AppPreviewProps)
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl h-[90vh] bg-[#1A1A1E] border border-[#2A2A30] rounded-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-6xl h-[90vh] bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A30] bg-[#1A1A1E] flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--card)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
             </div>
-            <span className="text-sm font-medium text-[#A1A1AA] truncate max-w-xs">{appName}</span>
+            <span className="text-sm font-medium text-[var(--text-secondary)] truncate max-w-xs">{appName}</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileMode(!mobileMode)}
-              className={`p-1.5 rounded-lg transition-colors ${mobileMode ? 'bg-[#2A2A30] text-[#F4F4F5]' : 'text-[#71717A] hover:text-[#A1A1AA]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${mobileMode ? 'bg-[var(--muted-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
               title="Toggle mobile view"
             >
               {mobileMode ? <Monitor size={15} /> : <Smartphone size={15} />}
@@ -60,32 +60,32 @@ export function AppPreview({ appUrl, appName, appId, onClose }: AppPreviewProps)
               href={appUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1.5 text-[#71717A] hover:text-[#A1A1AA] transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
               title="Open in new tab"
             >
               <ExternalLink size={15} />
             </a>
-            <button onClick={onClose} className="p-1.5 text-[#71717A] hover:text-[#F4F4F5] transition-colors">
+            <button onClick={onClose} className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
               <X size={15} />
             </button>
           </div>
         </div>
 
         {/* Preview area */}
-        <div className="flex-1 overflow-hidden flex items-center justify-center bg-[#0E0E10]">
+        <div className="flex-1 overflow-hidden flex items-center justify-center bg-[var(--input-bg)]">
           <div
             className="relative h-full transition-all duration-300"
             style={{ width: mobileMode ? '390px' : '100%', maxHeight: '100%' }}
           >
             {loading && !error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#0E0E10] z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--input-bg)] z-10">
                 <Loader2 className="animate-spin text-[#6B21E8]" size={32} />
               </div>
             )}
 
             {error ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#0E0E10]">
-                <p className="text-[#A1A1AA] text-sm text-center max-w-xs">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[var(--input-bg)]">
+                <p className="text-[var(--text-secondary)] text-sm text-center max-w-xs">
                   This app needs to be opened directly.
                 </p>
                 <a

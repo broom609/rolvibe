@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Script from 'next/script'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -37,8 +38,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} data-theme="dark" suppressHydrationWarning>
       <body>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            try {
+              const theme = localStorage.getItem('rolvibe-theme');
+              if (theme === 'light' || theme === 'dark') {
+                document.documentElement.dataset.theme = theme;
+              }
+            } catch {}
+          `}
+        </Script>
         {children}
         <Toaster theme="dark" position="bottom-right" />
       </body>

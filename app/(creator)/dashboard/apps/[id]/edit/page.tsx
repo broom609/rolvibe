@@ -20,7 +20,7 @@ export default async function EditAppPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">Edit App</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Edit App</h1>
       <EditAppClient app={app as App} />
     </div>
   )

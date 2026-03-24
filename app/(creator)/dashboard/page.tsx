@@ -39,33 +39,33 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-[#F4F4F5]">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
           Hey, {profile?.display_name || profile?.username || 'creator'} 👋
         </h1>
-        <p className="text-[#A1A1AA] text-sm mt-1">Here's what's happening with your apps.</p>
+        <p className="text-[var(--text-secondary)] text-sm mt-1">Here's what's happening with your apps.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-4">
+          <div key={label} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Icon size={16} className={color} />
-              <p className="text-xs text-[#71717A]">{label}</p>
+              <p className="text-xs text-[var(--text-muted)]">{label}</p>
             </div>
-            <p className="text-2xl font-bold text-[#F4F4F5]">{value}</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
           </div>
         ))}
       </div>
 
       {/* Earnings banner */}
       {!profile?.stripe_onboarded && (
-        <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-4 flex items-center justify-between gap-4">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <DollarSign size={20} className="text-[#71717A]" />
+            <DollarSign size={20} className="text-[var(--text-muted)]" />
             <div>
-              <p className="text-sm font-medium text-[#F4F4F5]">Connect Stripe to receive payouts</p>
-              <p className="text-xs text-[#71717A]">Earn from paid apps and subscriptions</p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">Connect Stripe to receive payouts</p>
+              <p className="text-xs text-[var(--text-muted)]">Earn from paid apps and subscriptions</p>
             </div>
           </div>
           <Link href="/dashboard/earnings" className="btn-primary text-sm py-2 px-4 flex-shrink-0">
@@ -77,22 +77,22 @@ export default async function DashboardPage() {
       {/* Recent apps */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-[#F4F4F5]">Your Apps</h2>
-          <Link href="/dashboard/submit" className="flex items-center gap-1.5 text-sm text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors">
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">Your Apps</h2>
+          <Link href="/dashboard/submit" className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
             <Plus size={14} /> Submit new
           </Link>
         </div>
 
         {appList.length === 0 ? (
-          <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-10 text-center">
-            <p className="text-[#A1A1AA] mb-4">No apps yet. Submit your first app to get discovered.</p>
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-10 text-center">
+            <p className="text-[var(--text-secondary)] mb-4">No apps yet. Submit your first app to get discovered.</p>
             <Link href="/dashboard/submit" className="btn-primary text-sm">Submit App</Link>
           </div>
         ) : (
-          <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl overflow-hidden">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="border-b border-[#2A2A30]">
-                <tr className="text-xs text-[#71717A] text-left">
+              <thead className="border-b border-[var(--border)]">
+                <tr className="text-xs text-[var(--text-muted)] text-left">
                   <th className="px-4 py-3 font-medium">App</th>
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">Status</th>
                   <th className="px-4 py-3 font-medium hidden md:table-cell">Tries</th>
@@ -100,26 +100,26 @@ export default async function DashboardPage() {
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#2A2A30]">
+              <tbody className="divide-y divide-[var(--border)]">
                 {appList.slice(0, 10).map(app => (
-                  <tr key={app.id} className="hover:bg-[#202026] transition-colors">
+                  <tr key={app.id} className="hover:bg-[var(--card-hover)] transition-colors">
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-[#F4F4F5] truncate max-w-[200px]">{app.name}</p>
-                        <p className="text-xs text-[#71717A] truncate max-w-[200px]">{app.tagline}</p>
+                        <p className="font-medium text-[var(--text-primary)] truncate max-w-[200px]">{app.name}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate max-w-[200px]">{app.tagline}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       <StatusBadge status={app.status} rejectionReason={app.rejection_reason} />
                     </td>
-                    <td className="px-4 py-3 text-[#A1A1AA] hidden md:table-cell">{formatTryCount(app.try_count || 0)}</td>
-                    <td className="px-4 py-3 text-[#A1A1AA] hidden md:table-cell">{formatTryCount(app.favorite_count || 0)}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)] hidden md:table-cell">{formatTryCount(app.try_count || 0)}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)] hidden md:table-cell">{formatTryCount(app.favorite_count || 0)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         {app.status === 'active' && (
-                          <Link href={`/apps/${app.slug}`} className="text-xs text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors">View</Link>
+                          <Link href={`/apps/${app.slug}`} className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">View</Link>
                         )}
-                        <Link href={`/dashboard/apps/${app.id}/edit`} className="text-xs text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors">Edit</Link>
+                        <Link href={`/dashboard/apps/${app.id}/edit`} className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Edit</Link>
                       </div>
                     </td>
                   </tr>

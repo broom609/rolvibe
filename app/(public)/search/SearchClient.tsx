@@ -61,16 +61,16 @@ export function SearchClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">Search Apps</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Search Apps</h1>
 
       <form onSubmit={handleSubmit} className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#71717A]" size={18} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
         <input
           type="search"
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search for apps..."
-          className="w-full bg-[#1A1A1E] border border-[#2A2A30] rounded-xl py-3 pl-12 pr-4 text-[#F4F4F5] placeholder-[#71717A] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 text-base"
+          className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl py-3 pl-12 pr-4 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 text-base"
           autoFocus
         />
       </form>
@@ -79,7 +79,7 @@ export function SearchClient() {
         {/* Filters sidebar */}
         <div className="lg:w-52 flex-shrink-0 space-y-5">
           <div>
-            <h3 className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-2">Category</h3>
+            <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Category</h3>
             <div className="space-y-1">
               {['', ...CATEGORIES].map(cat => (
                 <button
@@ -87,8 +87,8 @@ export function SearchClient() {
                   onClick={() => handleFilterChange(cat, pricingFilter, sortFilter)}
                   className={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                     categoryFilter === cat
-                      ? 'bg-[#2A2A30] text-[#F4F4F5]'
-                      : 'text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#1A1A1E]'
+                      ? 'bg-[var(--muted-surface)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)]'
                   }`}
                 >
                   {cat || 'All Categories'}
@@ -98,7 +98,7 @@ export function SearchClient() {
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-2">Pricing</h3>
+            <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Pricing</h3>
             <div className="space-y-1">
               {[['', 'Any'], ['free', 'Free'], ['paid', 'Paid'], ['subscription', 'Subscription']].map(([val, label]) => (
                 <button
@@ -106,8 +106,8 @@ export function SearchClient() {
                   onClick={() => handleFilterChange(categoryFilter, val, sortFilter)}
                   className={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                     pricingFilter === val
-                      ? 'bg-[#2A2A30] text-[#F4F4F5]'
-                      : 'text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#1A1A1E]'
+                      ? 'bg-[var(--muted-surface)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)]'
                   }`}
                 >
                   {label}
@@ -117,7 +117,7 @@ export function SearchClient() {
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold text-[#71717A] uppercase tracking-wider mb-2">Sort</h3>
+            <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Sort</h3>
             <div className="space-y-1">
               {[['relevance', 'Relevance'], ['trending', 'Trending'], ['newest', 'Newest'], ['most_tried', 'Most Tried']].map(([val, label]) => (
                 <button
@@ -125,8 +125,8 @@ export function SearchClient() {
                   onClick={() => handleFilterChange(categoryFilter, pricingFilter, val)}
                   className={`w-full text-left text-sm px-2 py-1.5 rounded-lg transition-colors ${
                     sortFilter === val
-                      ? 'bg-[#2A2A30] text-[#F4F4F5]'
-                      : 'text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-[#1A1A1E]'
+                      ? 'bg-[var(--muted-surface)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card)]'
                   }`}
                 >
                   {label}
@@ -144,18 +144,18 @@ export function SearchClient() {
             </div>
           ) : searched && results.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-[#F4F4F5] font-semibold mb-2">No apps found for &ldquo;{query}&rdquo;</p>
-              <p className="text-sm text-[#71717A]">Try a different search or browse by category.</p>
+              <p className="text-[var(--text-primary)] font-semibold mb-2">No apps found for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm text-[var(--text-muted)]">Try a different search or browse by category.</p>
             </div>
           ) : results.length > 0 ? (
             <>
-              <p className="text-sm text-[#71717A] mb-4">{results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm text-[var(--text-muted)] mb-4">{results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;</p>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {results.map(app => <AppCard key={app.id} app={app} />)}
               </div>
             </>
           ) : (
-            <div className="text-center py-16 text-[#71717A]">
+            <div className="text-center py-16 text-[var(--text-muted)]">
               <Search size={40} className="mx-auto mb-3 opacity-30" />
               <p>Search for apps, creators, or categories</p>
             </div>

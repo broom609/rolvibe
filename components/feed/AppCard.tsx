@@ -25,7 +25,7 @@ export function AppCard({ app, size = 'normal' }: AppCardProps) {
 
   return (
     <div className={cn(
-      'group rounded-xl overflow-hidden bg-[#1A1A1E] border border-[#2A2A30] card-hover flex flex-col',
+      'group rounded-xl overflow-hidden bg-[var(--card)] border border-[var(--border)] card-hover flex flex-col',
       isFeatured ? 'flex-row min-h-[160px]' : ''
     )}>
       <Link href={`/apps/${app.slug}`} className={cn(
@@ -60,27 +60,27 @@ export function AppCard({ app, size = 'normal' }: AppCardProps) {
         </div>
 
         <Link href={`/apps/${app.slug}`} className="block">
-          <h3 className="font-semibold text-sm text-[#F4F4F5] truncate group-hover:text-white leading-snug">
+          <h3 className="font-semibold text-sm text-[var(--text-primary)] truncate group-hover:text-white leading-snug">
             {app.name}
           </h3>
-          <p className="text-xs text-[#A1A1AA] line-clamp-2 mt-0.5 leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mt-0.5 leading-relaxed">
             {app.tagline}
           </p>
         </Link>
 
-        <div className="mt-auto pt-1 border-t border-[#2A2A30] flex items-center justify-between">
+        <div className="mt-auto pt-1 border-t border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             {app.creator && (
               <Link
                 href={`/creators/${app.creator.username}`}
-                className="text-xs text-[#71717A] hover:text-[#A1A1AA] transition-colors"
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
                 onClick={e => e.stopPropagation()}
               >
                 @{app.creator.username}
               </Link>
             )}
-            <span className="text-xs text-[#71717A]">·</span>
-            <span className="text-xs text-[#71717A]">{formatTryCount(app.try_count)} tries</span>
+            <span className="text-xs text-[var(--text-muted)]">·</span>
+            <span className="text-xs text-[var(--text-muted)]">{formatTryCount(app.try_count)} tries</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function AppCard({ app, size = 'normal' }: AppCardProps) {
                 'p-1.5 rounded-full transition-all',
                 isFavorited
                   ? 'text-pink-500 bg-pink-500/10'
-                  : 'text-[#71717A] hover:text-pink-400 hover:bg-pink-500/10'
+                  : 'text-[var(--text-muted)] hover:text-pink-400 hover:bg-pink-500/10'
               )}
               aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
             >

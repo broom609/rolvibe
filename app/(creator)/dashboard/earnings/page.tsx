@@ -11,13 +11,13 @@ export default async function EarningsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">Earnings</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Earnings</h1>
 
       {!profile?.stripe_onboarded ? (
-        <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-2xl p-8 text-center max-w-md mx-auto">
-          <DollarSign size={40} className="text-[#71717A] mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-[#F4F4F5] mb-2">Connect Stripe to receive payouts</h2>
-          <p className="text-sm text-[#A1A1AA] mb-6">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-8 text-center max-w-md mx-auto">
+          <DollarSign size={40} className="text-[var(--text-muted)] mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Connect Stripe to receive payouts</h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-6">
             Rolvibe takes a 10% platform fee. You keep the rest. Connect Stripe Connect to start receiving payments for your paid apps.
           </p>
           <a
@@ -35,13 +35,13 @@ export default async function EarningsPage() {
               { label: 'Pending Payout', value: '$0.00' },
               { label: 'Last Payout', value: 'Never' },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-4">
-                <p className="text-xs text-[#71717A] mb-1">{label}</p>
-                <p className="text-xl font-bold text-[#F4F4F5]">{value}</p>
+              <div key={label} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
+                <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
               </div>
             ))}
           </div>
-          <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-6 text-center text-[#71717A] text-sm">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 text-center text-[var(--text-muted)] text-sm">
             No transactions yet.
           </div>
         </div>

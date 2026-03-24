@@ -6,18 +6,23 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <div className="min-h-screen">
       <Navbar />
       <main>{children}</main>
-      <footer className="border-t border-[#2A2A30] mt-20 py-8">
+      <footer className="border-t border-[var(--border)] mt-20 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <RolvibeLogo size={24} withWordmark wordmarkClassName="text-sm font-semibold" />
-              <span className="text-xs text-[#71717A]">Where vibe coders get discovered.</span>
+              <RolvibeLogo
+                size={30}
+                withWordmark
+                iconClassName="scale-[1.12] brightness-125 contrast-125 saturate-150"
+                wordmarkClassName="text-sm font-semibold"
+              />
+              <span className="text-xs text-[var(--text-muted)]">Where vibe coders get discovered.</span>
             </div>
-            <div className="flex gap-5 text-xs text-[#71717A]">
-              <a href="/about" className="hover:text-[#A1A1AA] transition-colors">About</a>
-              <a href="/guidelines" className="hover:text-[#A1A1AA] transition-colors">Guidelines</a>
-              <a href="/terms" className="hover:text-[#A1A1AA] transition-colors">Terms</a>
-              <a href="/privacy" className="hover:text-[#A1A1AA] transition-colors">Privacy</a>
+            <div className="flex gap-5 text-xs text-[var(--text-muted)]">
+              <a href="/about" className="hover:text-[var(--text-secondary)] transition-colors">About</a>
+              <a href="/guidelines" className="hover:text-[var(--text-secondary)] transition-colors">Guidelines</a>
+              <a href="/terms" className="hover:text-[var(--text-secondary)] transition-colors">Terms</a>
+              <a href="/privacy" className="hover:text-[var(--text-secondary)] transition-colors">Privacy</a>
             </div>
           </div>
         </div>

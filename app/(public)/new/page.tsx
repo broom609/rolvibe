@@ -22,13 +22,13 @@ export default async function NewPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-2">New This Week</h1>
-      <p className="text-[#A1A1AA] text-sm mb-8">Apps launched in the last 7 days.</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">New This Week</h1>
+      <p className="text-[var(--text-secondary)] text-sm mb-8">Apps launched in the last 7 days.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {apps.map(app => <AppCard key={app.id} app={app} />)}
       </div>
       {apps.length === 0 && (
-        <div className="text-center py-16 text-[#A1A1AA]">No new apps this week yet.</div>
+        <div className="text-center py-16 text-[var(--text-secondary)]">No new apps this week yet.</div>
       )}
     </div>
   )

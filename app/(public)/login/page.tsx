@@ -50,17 +50,22 @@ function LoginForm() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <RolvibeLogo size={56} className="justify-center mb-4" priority />
-          <h1 className="text-xl font-bold text-[#F4F4F5] mb-1">Sign in to Rolvibe</h1>
-          <p className="text-sm text-[#A1A1AA]">Discover and share vibe-coded apps</p>
+          <RolvibeLogo
+            size={64}
+            className="justify-center mb-4"
+            iconClassName="scale-[1.08] brightness-125 contrast-125 saturate-150"
+            priority
+          />
+          <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">Sign in to Rolvibe</h1>
+          <p className="text-sm text-[var(--text-secondary)]">Discover and share vibe-coded apps</p>
         </div>
 
-        <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-2xl p-6 space-y-4">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 space-y-4">
           {sent ? (
             <div className="text-center py-4">
-              <p className="text-[#F4F4F5] font-medium mb-2">Check your email ✉️</p>
-              <p className="text-sm text-[#A1A1AA]">We sent a magic link to <strong>{email}</strong></p>
-              <button onClick={() => setSent(false)} className="mt-4 text-xs text-[#71717A] hover:text-[#A1A1AA] transition-colors">Try a different email</button>
+              <p className="text-[var(--text-primary)] font-medium mb-2">Check your email ✉️</p>
+              <p className="text-sm text-[var(--text-secondary)]">We sent a magic link to <strong>{email}</strong></p>
+              <button onClick={() => setSent(false)} className="mt-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Try a different email</button>
             </div>
           ) : (
             <>
@@ -80,9 +85,9 @@ function LoginForm() {
                 Continue with Google
               </button>
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-[#2A2A30]" />
-                <span className="text-xs text-[#71717A]">or</span>
-                <div className="flex-1 h-px bg-[#2A2A30]" />
+                <div className="flex-1 h-px bg-[var(--muted-surface)]" />
+                <span className="text-xs text-[var(--text-muted)]">or</span>
+                <div className="flex-1 h-px bg-[var(--muted-surface)]" />
               </div>
               <form onSubmit={handleMagicLink} className="space-y-3">
                 <input
@@ -91,7 +96,7 @@ function LoginForm() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full bg-[#0E0E10] border border-[#2A2A30] rounded-lg px-3 py-2.5 text-sm text-[#F4F4F5] placeholder-[#71717A] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
                 />
                 <button type="submit" disabled={loading} className="btn-primary w-full justify-center">
                   {loading ? <Loader2 size={15} className="animate-spin" /> : 'Send Magic Link'}
@@ -100,10 +105,10 @@ function LoginForm() {
             </>
           )}
         </div>
-        <p className="text-center text-xs text-[#71717A] mt-4">
+        <p className="text-center text-xs text-[var(--text-muted)] mt-4">
           By signing in, you agree to our{' '}
-          <a href="/terms" className="hover:text-[#A1A1AA] underline">Terms</a>{' '}and{' '}
-          <a href="/privacy" className="hover:text-[#A1A1AA] underline">Privacy Policy</a>
+          <a href="/terms" className="hover:text-[var(--text-secondary)] underline">Terms</a>{' '}and{' '}
+          <a href="/privacy" className="hover:text-[var(--text-secondary)] underline">Privacy Policy</a>
         </p>
       </div>
     </div>

@@ -5,6 +5,10 @@
   --card: #1A1A1E;
   --card-hover: #202026;
   --border: #2A2A30;
+  --border-strong: #3A3A40;
+  --muted-surface: #2A2A30;
+  --input-bg: #0E0E10;
+  --nav-bg: rgba(14, 14, 16, 0.95);
   --text-primary: #F4F4F5;
   --text-secondary: #A1A1AA;
   --text-muted: #71717A;
@@ -14,6 +18,22 @@
   --success: #22C55E;
   --warning: #F59E0B;
   --danger: #EF4444;
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  --background: #F5F7FB;
+  --card: #FFFFFF;
+  --card-hover: #F0F3F9;
+  --border: #DDE3EE;
+  --border-strong: #BEC8D8;
+  --muted-surface: #E8EDF6;
+  --input-bg: #F3F6FC;
+  --nav-bg: rgba(245, 247, 251, 0.92);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  color-scheme: light;
 }
 
 * {
@@ -25,6 +45,19 @@ body {
   color: var(--text-primary);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .scrollbar-hide {

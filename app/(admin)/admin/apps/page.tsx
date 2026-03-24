@@ -21,7 +21,7 @@ export default async function AdminAppsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">All Apps</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">All Apps</h1>
       <AdminAppsClient apps={(apps || []) as App[]} />
     </div>
   )

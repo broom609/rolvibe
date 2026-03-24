@@ -11,7 +11,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Settings</h1>
       <SettingsClient profile={profile} />
     </div>
   )

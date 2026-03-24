@@ -60,12 +60,12 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-[#71717A] mb-6">
-        <Link href="/" className="hover:text-[#A1A1AA] transition-colors">Home</Link>
+      <nav className="flex items-center gap-1 text-sm text-[var(--text-muted)] mb-6">
+        <Link href="/" className="hover:text-[var(--text-secondary)] transition-colors">Home</Link>
         <ChevronRight size={14} />
-        <Link href={`/category/${app.category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} className="hover:text-[#A1A1AA] transition-colors">{app.category}</Link>
+        <Link href={`/category/${app.category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} className="hover:text-[var(--text-secondary)] transition-colors">{app.category}</Link>
         <ChevronRight size={14} />
-        <span className="text-[#A1A1AA] truncate">{app.name}</span>
+        <span className="text-[var(--text-secondary)] truncate">{app.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -73,8 +73,8 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
         <div className="lg:col-span-2 space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#F4F4F5] mb-2">{app.name}</h1>
-            <p className="text-[#A1A1AA] text-base mb-4">{app.tagline}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2">{app.name}</h1>
+            <p className="text-[var(--text-secondary)] text-base mb-4">{app.tagline}</p>
 
             <div className="flex flex-wrap gap-2 mb-4">
               <CategoryPill category={app.category} size="md" />
@@ -113,7 +113,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           {/* Screenshots */}
           {allImages.length > 0 && (
             <div className="space-y-3">
-              <div className="relative aspect-video rounded-xl overflow-hidden bg-[#1A1A1E]">
+              <div className="relative aspect-video rounded-xl overflow-hidden bg-[var(--card)]">
                 <Image
                   src={allImages[activeScreenshot]}
                   alt={`${app.name} screenshot ${activeScreenshot + 1}`}
@@ -128,7 +128,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
                       key={i}
                       onClick={() => setActiveScreenshot(i)}
                       className={`flex-shrink-0 w-20 h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                        activeScreenshot === i ? 'border-[#FF2D9B]' : 'border-[#2A2A30] hover:border-[#3A3A40]'
+                        activeScreenshot === i ? 'border-[#FF2D9B]' : 'border-[var(--border)] hover:border-[var(--border-strong)]'
                       }`}
                     >
                       <div className="relative w-full h-full">
@@ -144,8 +144,8 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           {/* Description */}
           {app.description && (
             <div className="prose prose-invert max-w-none">
-              <h2 className="text-lg font-semibold text-[#F4F4F5] mb-2">About</h2>
-              <p className="text-[#A1A1AA] whitespace-pre-wrap text-sm leading-relaxed">{app.description}</p>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">About</h2>
+              <p className="text-[var(--text-secondary)] whitespace-pre-wrap text-sm leading-relaxed">{app.description}</p>
             </div>
           )}
 
@@ -153,7 +153,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           {app.tags?.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {app.tags.map(tag => (
-                <span key={tag} className="text-xs px-2 py-1 bg-[#1A1A1E] border border-[#2A2A30] rounded-full text-[#A1A1AA]">
+                <span key={tag} className="text-xs px-2 py-1 bg-[var(--card)] border border-[var(--border)] rounded-full text-[var(--text-secondary)]">
                   #{tag}
                 </span>
               ))}
@@ -163,7 +163,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           {/* Report link */}
           <button
             onClick={() => setShowReport(true)}
-            className="flex items-center gap-1.5 text-xs text-[#71717A] hover:text-[#A1A1AA] transition-colors mt-4"
+            className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mt-4"
           >
             <Flag size={11} /> Report this app
           </button>
@@ -172,15 +172,15 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
         {/* Right sidebar */}
         <div className="space-y-4">
           {/* Stats */}
-          <div className="bg-[#1A1A1E] border border-[#2A2A30] rounded-xl p-4">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="text-center">
-                <p className="text-xl font-bold text-[#F4F4F5]">{formatTryCount(app.try_count)}</p>
-                <p className="text-xs text-[#71717A]">tries</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">{formatTryCount(app.try_count)}</p>
+                <p className="text-xs text-[var(--text-muted)]">tries</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-bold text-[#F4F4F5]">{formatTryCount(favoriteCount)}</p>
-                <p className="text-xs text-[#71717A]">saves</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">{formatTryCount(favoriteCount)}</p>
+                <p className="text-xs text-[var(--text-muted)]">saves</p>
               </div>
             </div>
 
@@ -189,7 +189,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg border transition-all text-sm font-medium ${
                 isFavorited
                   ? 'bg-pink-500/10 border-pink-500/30 text-pink-400'
-                  : 'border-[#2A2A30] text-[#A1A1AA] hover:border-[#3A3A40] hover:text-[#F4F4F5]'
+                  : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Heart size={14} fill={isFavorited ? 'currentColor' : 'none'} />
@@ -201,13 +201,13 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
                 href={app.app_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#2A2A30] text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors text-sm"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm"
               >
                 <ExternalLink size={13} /> Open App
               </a>
               <button
                 onClick={handleShare}
-                className="px-3 py-2 rounded-lg bg-[#2A2A30] text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors"
+                className="px-3 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 aria-label="Share"
               >
                 <Share2 size={13} />

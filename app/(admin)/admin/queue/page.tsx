@@ -21,8 +21,8 @@ export default async function AdminQueuePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#F4F4F5] mb-2">Review Queue</h1>
-      <p className="text-sm text-[#A1A1AA] mb-6">{(apps || []).length} apps waiting for review (oldest first)</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Review Queue</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">{(apps || []).length} apps waiting for review (oldest first)</p>
       <QueueClient apps={(apps || []) as App[]} />
     </div>
   )
