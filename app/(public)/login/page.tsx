@@ -51,9 +51,8 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <RolvibeLogo
-            size={64}
+            size={72}
             className="justify-center mb-4"
-            iconClassName="scale-[1.08] brightness-125 contrast-125 saturate-150"
             priority
           />
           <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">Sign in to Rolvibe</h1>

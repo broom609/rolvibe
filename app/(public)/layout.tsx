@@ -11,9 +11,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <RolvibeLogo
-                size={30}
+                size={36}
                 withWordmark
-                iconClassName="scale-[1.12] brightness-125 contrast-125 saturate-150"
                 wordmarkClassName="text-sm font-semibold"
               />
               <span className="text-xs text-[var(--text-muted)]">Where vibe coders get discovered.</span>

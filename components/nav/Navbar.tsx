@@ -43,10 +43,9 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <RolvibeLogo
-            size={40}
+            size={48}
             withWordmark
             priority
-            iconClassName="scale-[1.18] brightness-125 contrast-125 saturate-150 drop-shadow-[0_0_16px_rgba(255,45,155,0.28)]"
             wordmarkClassName="hidden sm:block"
           />
         </Link>
