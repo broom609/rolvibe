@@ -58,10 +58,19 @@ const PRICING_OPTIONS: { value: PricingType; label: string; desc: string }[] = [
 ]
 
 const ACCEPTED_THUMBNAIL_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ACCEPTED_THUMBNAIL_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif']
 const MAX_THUMBNAIL_SIZE_BYTES = 5 * 1024 * 1024
 
 function sanitizeFileName(fileName: string) {
   return fileName.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
+}
+
+function getFileExtension(fileName: string) {
+  return fileName.split('.').pop()?.toLowerCase() || ''
+}
+
+function isAcceptedThumbnail(file: File) {
+  return ACCEPTED_THUMBNAIL_TYPES.includes(file.type) || ACCEPTED_THUMBNAIL_EXTENSIONS.includes(getFileExtension(file.name))
 }
 
 export function SubmitAppForm() {
@@ -173,7 +182,7 @@ export function SubmitAppForm() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (!ACCEPTED_THUMBNAIL_TYPES.includes(file.type)) {
+    if (!isAcceptedThumbnail(file)) {
       toast.error('Please upload a JPG, PNG, WebP, or GIF image')
       e.target.value = ''
       return
@@ -194,13 +203,18 @@ export function SubmitAppForm() {
         return
       }
 
-      const filePath = `thumbnails/${user.id}/${Date.now()}-${sanitizeFileName(file.name)}`
+      const filePath = `${user.id}/${Date.now()}-${sanitizeFileName(file.name)}`
       const { error } = await supabase.storage
         .from('thumbnails')
-        .upload(filePath, file, { upsert: true })
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          contentType: file.type || undefined,
+          upsert: false,
+        })
 
       if (error) {
-        toast.error('Upload failed: ' + error.message)
+        console.error('Thumbnail upload failed:', error)
+        toast.error(error.message.includes('Bucket not found') ? 'Thumbnail bucket is missing in Supabase' : 'Upload failed: ' + error.message)
         return
       }
 
@@ -405,7 +419,7 @@ export function SubmitAppForm() {
                   </div>
                 ) : formData.thumbnail_url ? (
                   <>
-                    <Image src={formData.thumbnail_url} alt="Thumbnail" fill className="object-cover" />
+                    <Image src={formData.thumbnail_url} alt="Thumbnail" fill className="object-cover" unoptimized />
                     <div className="absolute inset-0 bg-black/35 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Camera size={20} className="text-white" />
                     </div>

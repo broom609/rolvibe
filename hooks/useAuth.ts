@@ -16,31 +16,40 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createClient()
 
+    async function loadProfile(currentUser: User | null) {
+      if (!currentUser) {
+        setProfile(null)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle()
+
+      if (error) {
+        console.error('useAuth profile load error:', error)
+        setProfile(null)
+        return
+      }
+
+      setProfile(data as Profile | null)
+    }
+
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-        setProfile(data)
-      }
+      await loadProfile(user)
       setLoading(false)
     }
 
     load()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-        setProfile(data)
-      } else {
-        setProfile(null)
-      }
+      await loadProfile(session?.user ?? null)
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

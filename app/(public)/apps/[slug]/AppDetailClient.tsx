@@ -100,6 +100,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
             className="object-cover"
             priority
             sizes="100vw"
+            unoptimized={allImages[activeScreenshot].startsWith('http')}
           />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
@@ -135,7 +136,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
                 )}
               >
                 <div className="relative w-full h-full">
-                  <Image src={img} alt="" fill className="object-cover" />
+                  <Image src={img} alt="" fill className="object-cover" unoptimized={img.startsWith('http')} />
                 </div>
               </button>
             ))}

@@ -41,6 +41,7 @@ export function AppCard({ app, size = 'normal' }: AppCardProps) {
             className="object-cover thumbnail-zoom"
             loading="lazy"
             sizes={isFeatured ? '256px' : '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw'}
+            unoptimized={app.thumbnail_url.startsWith('http')}
           />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>

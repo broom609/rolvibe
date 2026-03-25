@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User, Shield } from 'lucide-react'
+import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User, Shield, PencilLine } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
@@ -14,6 +14,8 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const publicProfileHref = profile?.username ? `/creators/${profile.username}` : null
+  const isAdmin = profile?.role === 'admin'
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -101,20 +103,27 @@ export function Navbar() {
                 <div className="absolute right-0 top-10 w-56 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl py-1 z-50">
                   <div className="px-3 py-2.5 border-b border-[var(--border)]">
                     <p className="text-xs text-[var(--text-muted)] truncate">
-                      @{profile?.username || user.email}
+                      {profile?.username ? `@${profile.username}` : user.email}
                     </p>
                     {profile?.display_name && (
                       <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{profile.display_name}</p>
                     )}
                   </div>
 
-                  {profile?.username && (
+                  <Link
+                    href="/dashboard/profile"
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <PencilLine size={14} /> Edit Profile
+                  </Link>
+                  {publicProfileHref && (
                     <Link
-                      href={`/creators/${profile.username}`}
+                      href={publicProfileHref}
                       className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors"
                       onClick={() => setMenuOpen(false)}
                     >
-                      <User size={14} /> My Profile
+                      <User size={14} /> View Public Profile
                     </Link>
                   )}
                   <Link
@@ -131,7 +140,7 @@ export function Navbar() {
                   >
                     <Settings size={14} /> Settings
                   </Link>
-                  {profile?.role === 'admin' && (
+                  {isAdmin && (
                     <Link
                       href="/admin/queue"
                       className="flex items-center gap-2.5 px-3 py-2 text-sm text-pink-400 hover:text-pink-300 hover:bg-[var(--muted-surface)] transition-colors"
