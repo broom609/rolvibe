@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const admin = createAdminClient()
   let query = admin
     .from('apps')
-    .select('*, creator:profiles(id, username, display_name, avatar_url, is_verified)')
+    .select('*, creator:profiles!apps_creator_id_fkey(username, display_name, avatar_url)')
     .eq('status', 'active')
     .order('score', { ascending: false })
     .order('created_at', { ascending: false })
