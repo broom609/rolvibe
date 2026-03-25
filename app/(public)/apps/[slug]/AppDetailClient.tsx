@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ExternalLink, Heart, Share2, Flag, ChevronRight, AlertTriangle, Star, Zap, Calendar } from 'lucide-react'
+import { ExternalLink, Heart, Share2, Flag, ChevronRight, AlertTriangle, Zap, Calendar } from 'lucide-react'
 import type { App } from '@/types'
 import { CategoryPill } from '@/components/ui/CategoryPill'
 import { PriceBadge } from '@/components/ui/PriceBadge'
@@ -12,12 +12,15 @@ import { TrustBadge } from '@/components/ui/TrustBadge'
 import { CreatorCard } from '@/components/creator/CreatorCard'
 import { AppPreview } from '@/components/app/AppPreview'
 import { ReportModal } from '@/components/app/ReportModal'
+import { CommentsSection } from '@/components/community/CommentsSection'
+import { RatingWidget } from '@/components/community/RatingWidget'
 import { useFavorite } from '@/hooks/useFavorite'
 import { formatTryCount, formatDate } from '@/lib/utils'
 import { track } from '@/lib/analytics'
 import { toast } from 'sonner'
 import { CATEGORY_GRADIENTS } from '@/types'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 interface AppDetailClientProps {
   app: App
@@ -28,14 +31,16 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
   const [showPreview, setShowPreview] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [activeScreenshot, setActiveScreenshot] = useState(0)
-  const [reviewRating, setReviewRating] = useState(0)
-  const [hoverRating, setHoverRating] = useState(0)
-  const [reviewText, setReviewText] = useState('')
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const gradient = CATEGORY_GRADIENTS[app.category] || 'from-gray-500 to-gray-700'
 
   useEffect(() => {
     fetch(`/api/apps/${app.id}/try`, { method: 'POST' })
     track('app_viewed', { app_id: app.id, category: app.category, pricing_type: app.pricing_type })
+
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id || null)
+    })
   }, [app.id, app.category, app.pricing_type])
 
   function handleTryNow() {
@@ -43,7 +48,8 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
     if (app.pricing_type === 'free') {
       setShowPreview(true)
     } else {
-      window.open(app.app_url, '_blank', 'noopener,noreferrer')
+      const dest = (app as App & { external_payment_url?: string }).external_payment_url || app.app_url
+      window.open(dest, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -58,18 +64,13 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
     track('app_shared', { app_id: app.id, method: 'share_button' })
   }
 
-  function handlePostReview() {
-    toast.success('Reviews coming soon!')
-    setReviewRating(0)
-    setReviewText('')
-  }
-
   const allImages = [app.thumbnail_url, ...app.screenshots].filter(Boolean) as string[]
 
   const tryLabel =
     app.pricing_type === 'free' ? 'Try Vibe — Free' :
     app.pricing_type === 'paid' ? `Buy — $${((app.price_cents || 0) / 100).toFixed(2)}` :
     app.pricing_type === 'subscription' ? `Subscribe — $${((app.subscription_price_cents || 0) / 100).toFixed(2)}/mo` :
+    app.pricing_type === 'coming_soon' ? 'Coming Soon' :
     app.pricing_type === 'invite_only' ? 'Request Invite' :
     'Join Waitlist'
 
@@ -105,11 +106,8 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
             <span className="text-white/40 text-7xl font-black">{app.name.charAt(0)}</span>
           </div>
         )}
-
-        {/* Gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-        {/* Staff pick badge */}
         {app.is_featured && (
           <div className="absolute top-4 left-4">
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] text-white shadow-lg">
@@ -118,7 +116,6 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           </div>
         )}
 
-        {/* Health warning overlay */}
         {(app.health_status === 'degraded' || app.health_status === 'broken') && (
           <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-yellow-900/80 border border-yellow-700/60 rounded-lg px-3 py-1.5 backdrop-blur-sm">
             <AlertTriangle size={13} className="text-yellow-400" />
@@ -126,7 +123,6 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
           </div>
         )}
 
-        {/* Screenshot thumbnails strip */}
         {allImages.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
             {allImages.map((img, i) => (
@@ -160,7 +156,6 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               {app.creator?.is_verified && <TrustBadge type="verified" />}
             </div>
             <p className="text-[var(--text-secondary)] text-base mb-4 leading-relaxed">{app.tagline}</p>
-
             <div className="flex flex-wrap gap-2">
               <CategoryPill category={app.category} size="md" />
               {app.built_with && <BuiltWithBadge builtWith={app.built_with} />}
@@ -175,7 +170,13 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               { label: 'Tries', value: formatTryCount(app.try_count) },
               { label: 'Saves', value: formatTryCount(favoriteCount) },
               { label: 'Built with', value: app.built_with || '—' },
-              { label: 'Health', value: app.health_status === 'healthy' ? '✓ Healthy' : app.health_status === 'degraded' ? '⚠ Degraded' : app.health_status === 'broken' ? '✗ Broken' : '— Unknown' },
+              {
+                label: 'Health',
+                value: app.health_status === 'healthy' ? '✓ Healthy'
+                  : app.health_status === 'degraded' ? '⚠ Degraded'
+                  : app.health_status === 'broken' ? '✗ Broken'
+                  : '— Unknown',
+              },
             ].map(stat => (
               <div key={stat.label} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 text-center">
                 <p className="text-base font-bold text-[var(--text-primary)] truncate">{stat.value}</p>
@@ -205,60 +206,11 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
             </div>
           )}
 
-          {/* Ratings & Reviews */}
-          <div>
-            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">Ratings &amp; Reviews</h2>
+          {/* Ratings */}
+          <RatingWidget appId={app.id} isAuthed={!!currentUserId} />
 
-            {/* Star picker */}
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 mb-4">
-              <p className="text-sm text-[var(--text-secondary)] mb-3">How would you rate this vibe?</p>
-              <div className="flex gap-1 mb-3">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <button
-                    key={star}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    onClick={() => setReviewRating(star)}
-                    className="transition-transform hover:scale-110"
-                    aria-label={`${star} star`}
-                  >
-                    <Star
-                      size={24}
-                      className={cn(
-                        'transition-colors',
-                        (hoverRating || reviewRating) >= star
-                          ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-[var(--border)]'
-                      )}
-                    />
-                  </button>
-                ))}
-              </div>
-              {reviewRating > 0 && (
-                <>
-                  <textarea
-                    value={reviewText}
-                    onChange={e => setReviewText(e.target.value)}
-                    placeholder="Share your experience with this vibe..."
-                    rows={3}
-                    className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/30 resize-none transition-all mb-3"
-                  />
-                  <button
-                    onClick={handlePostReview}
-                    className="btn-primary text-sm py-1.5 px-4"
-                  >
-                    Post Review
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Empty state */}
-            <div className="text-center py-10 text-[var(--text-muted)]">
-              <Star size={28} className="mx-auto mb-2 opacity-30" />
-              <p className="text-sm">No reviews yet. Be the first!</p>
-            </div>
-          </div>
+          {/* Comments */}
+          <CommentsSection appId={app.id} currentUserId={currentUserId} />
 
           {/* Report */}
           <button
@@ -272,7 +224,6 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
         {/* Right sidebar */}
         <div className="space-y-4">
           <div className="lg:sticky lg:top-20 space-y-4">
-            {/* CTA card */}
             <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
               <PriceBadge
                 pricingType={app.pricing_type}
@@ -282,7 +233,8 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
 
               <button
                 onClick={handleTryNow}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-purple-900/30"
+                disabled={app.pricing_type === 'coming_soon'}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-purple-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Zap size={15} fill="currentColor" />
                 {tryLabel}
@@ -327,13 +279,11 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               )}
             </div>
 
-            {/* Creator card */}
             {app.creator && <CreatorCard creator={app.creator} />}
           </div>
         </div>
       </div>
 
-      {/* Preview modal */}
       {showPreview && (
         <AppPreview
           appUrl={app.app_url}
@@ -343,7 +293,6 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
         />
       )}
 
-      {/* Report modal */}
       {showReport && (
         <ReportModal
           appId={app.id}

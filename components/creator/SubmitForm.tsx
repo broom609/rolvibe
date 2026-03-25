@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { X, ChevronRight, ChevronLeft, Loader2, Check } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft, Loader2, Check, Camera } from 'lucide-react'
+import Image from 'next/image'
 import { AppCard } from '@/components/feed/AppCard'
 import { CATEGORIES, BUILT_WITH_OPTIONS } from '@/types'
 import type { App } from '@/types'
 import { track } from '@/lib/analytics'
+import { createClient } from '@/lib/supabase/client'
 
 const step1Schema = z.object({
   app_url: z.string().url('Must be a valid HTTPS URL').startsWith('https://', 'URL must start with https://'),
@@ -60,6 +62,8 @@ export function SubmitAppForm() {
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [thumbnailUploading, setThumbnailUploading] = useState(false)
+  const thumbnailInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState<Partial<FormData>>({
     pricing_type: 'free',
     price_dollars: '',
@@ -156,6 +160,31 @@ export function SubmitAppForm() {
 
   function removeTag(tag: string) {
     setFormData(prev => ({ ...prev, tags: (prev.tags || []).filter(t => t !== tag) }))
+  }
+
+  async function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
+
+    setThumbnailUploading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setThumbnailUploading(false); return }
+
+    const ext = file.name.split('.').pop()
+    const filePath = `${user.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('thumbnails').upload(filePath, file, { upsert: true })
+
+    if (error) {
+      toast.error('Upload failed: ' + error.message)
+      setThumbnailUploading(false)
+      return
+    }
+    const { data: urlData } = supabase.storage.from('thumbnails').getPublicUrl(filePath)
+    setFormData(prev => ({ ...prev, thumbnail_url: urlData.publicUrl }))
+    setThumbnailUploading(false)
+    toast.success('Thumbnail uploaded')
   }
 
   const pricingType = formData.pricing_type || 'free'
@@ -320,6 +349,42 @@ export function SubmitAppForm() {
                 </div>
               )}
             </div>
+
+            {/* Thumbnail */}
+            <div>
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Thumbnail <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+              </label>
+              <div
+                className="relative w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] hover:border-[#6B21E8] transition-colors overflow-hidden cursor-pointer bg-[var(--muted-surface)] flex items-center justify-center"
+                onClick={() => thumbnailInputRef.current?.click()}
+              >
+                {thumbnailUploading ? (
+                  <Loader2 size={24} className="animate-spin text-[var(--text-muted)]" />
+                ) : formData.thumbnail_url ? (
+                  <>
+                    <Image src={formData.thumbnail_url} alt="Thumbnail" fill className="object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera size={20} className="text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <Camera size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+                    <p className="text-xs text-[var(--text-muted)]">Click to upload thumbnail</p>
+                    <p className="text-xs text-[var(--text-muted)]">JPG, PNG, WebP · Max 5MB</p>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleThumbnailChange}
+              />
+            </div>
+
             <div className="flex justify-between">
               <button type="button" onClick={() => setStep(0)} className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"><ChevronLeft size={14} /> Back</button>
               <button type="submit" className="btn-primary text-sm flex items-center gap-1.5">Next <ChevronRight size={14} /></button>

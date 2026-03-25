@@ -1,82 +1,99 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Loader2, Camera, Check, X, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
-import type { Profile } from '@/types'
 
 const BIO_MAX = 160
-
 type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
-export function SettingsClient({ profile }: { profile: Profile }) {
+export function SettingsClient() {
+  const supabase = createClient()
+
+  const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [originalUsername, setOriginalUsername] = useState('')
+
+  const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
+  const [bio, setBio] = useState('')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [twitterHandle, setTwitterHandle] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
+
   const [avatarUploading, setAvatarUploading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [form, setForm] = useState({
-    username: profile?.username || '',
-    display_name: profile?.display_name || '',
-    bio: profile?.bio || '',
-    website_url: profile?.website_url || '',
-    twitter_handle: profile?.twitter_handle || '',
-    github_url: profile?.github_url || '',
-    linkedin_url: profile?.linkedin_url || '',
-  })
+  useEffect(() => {
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      setUserId(user.id)
 
-  const initialForm = useRef(form)
-  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm.current) || avatarUrl !== (profile?.avatar_url || '')
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
 
-  function handleChange(field: keyof typeof form, value: string) {
-    if (field === 'twitter_handle') {
-      value = value.replace(/^@+/, '')
+      if (error) {
+        console.error('Profile load error:', error)
+        toast.error('Failed to load profile')
+        return
+      }
+
+      if (data) {
+        setDisplayName(data.display_name || '')
+        setUsername(data.username || '')
+        setOriginalUsername(data.username || '')
+        setBio(data.bio || '')
+        setWebsiteUrl(data.website_url || '')
+        setTwitterHandle(data.twitter_handle || '')
+        setGithubUrl(data.github_url || '')
+        setLinkedinUrl(data.linkedin_url || '')
+        setAvatarUrl(data.avatar_url || '')
+      }
+      setLoaded(true)
+      setIsDirty(false)
     }
-    if (field === 'bio' && value.length > BIO_MAX) return
-    setForm(prev => ({ ...prev, [field]: value }))
-    if (field === 'username') setUsernameStatus('idle')
-  }
-
-  function handleWebsiteBlur() {
-    const val = form.website_url.trim()
-    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
-      setForm(prev => ({ ...prev, website_url: `https://${val}` }))
-    }
-  }
+    loadProfile()
+  }, [])
 
   const checkUsername = useCallback(async () => {
-    const username = form.username.trim()
-    if (username === profile?.username) { setUsernameStatus('idle'); return }
+    if (username === originalUsername) { setUsernameStatus('idle'); return }
     if (!username) { setUsernameStatus('idle'); return }
     if (!/^[a-z0-9_]{3,20}$/.test(username)) { setUsernameStatus('invalid'); return }
-
     setUsernameStatus('checking')
-    const supabase = createClient()
     const { data } = await supabase
       .from('profiles')
       .select('id')
       .eq('username', username)
       .single()
-
     setUsernameStatus(data ? 'taken' : 'available')
-  }, [form.username, profile?.username])
+  }, [username, originalUsername, supabase])
 
-  async function handleAvatarClick() {
-    fileInputRef.current?.click()
+  function handleWebsiteBlur() {
+    const val = websiteUrl.trim()
+    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+      setWebsiteUrl(`https://${val}`)
+    }
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file || !userId) return
     if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2MB'); return }
 
     setAvatarUploading(true)
-    const supabase = createClient()
     const ext = file.name.split('.').pop()
-    const filePath = `${profile.id}/avatar.${ext}`
+    const filePath = `${userId}/avatar.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
@@ -91,6 +108,7 @@ export function SettingsClient({ profile }: { profile: Profile }) {
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath)
     const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`
     setAvatarUrl(publicUrl)
+    setIsDirty(true)
     setAvatarUploading(false)
     toast.success('Avatar uploaded')
   }
@@ -103,27 +121,36 @@ export function SettingsClient({ profile }: { profile: Profile }) {
     }
 
     setSaving(true)
-    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      toast.error('Not logged in')
+      setSaving(false)
+      return
+    }
+
     const { error } = await supabase
       .from('profiles')
       .update({
-        username: form.username.trim(),
-        display_name: form.display_name.trim() || null,
-        bio: form.bio.trim() || null,
-        website_url: form.website_url.trim() || null,
-        twitter_handle: form.twitter_handle.trim() || null,
-        github_url: form.github_url.trim() || null,
-        linkedin_url: form.linkedin_url.trim() || null,
+        display_name: displayName.trim() || null,
+        username: username.trim().toLowerCase(),
+        bio: bio.trim() || null,
+        website_url: websiteUrl.trim() || null,
+        twitter_handle: twitterHandle.replace('@', '').trim() || null,
+        github_url: githubUrl.trim() || null,
+        linkedin_url: linkedinUrl.trim() || null,
         avatar_url: avatarUrl || null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', profile.id)
+      .eq('id', user.id)
 
     setSaving(false)
     if (error) {
-      toast.error(error.message)
+      console.error('Profile save error:', error)
+      toast.error('Failed to save: ' + error.message)
     } else {
-      initialForm.current = form
+      setOriginalUsername(username)
+      setUsernameStatus('idle')
+      setIsDirty(false)
       toast.success('Profile saved!')
     }
   }
@@ -138,11 +165,19 @@ export function SettingsClient({ profile }: { profile: Profile }) {
 
   const usernameHint = {
     idle: 'Lowercase letters, numbers, underscores. 3–20 chars.',
-    checking: 'Checking availability...',
+    checking: 'Checking...',
     available: 'Username is available',
     taken: 'That username is already taken',
     invalid: 'Only lowercase letters, numbers, underscores. 3–20 chars.',
   }[usernameStatus]
+
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 size={24} className="animate-spin text-[var(--text-muted)]" />
+      </div>
+    )
+  }
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
@@ -152,8 +187,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
         <div className="flex items-center gap-5">
           <div className="relative flex-shrink-0">
             <div
-              className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2D9B] to-[#6B21E8] flex items-center justify-center cursor-pointer ring-2 ring-[var(--border)] hover:ring-[#6B21E8] transition-all"
-              onClick={handleAvatarClick}
+              className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2D9B] to-[#6B21E8] flex items-center justify-center cursor-pointer ring-2 ring-[var(--border)] hover:ring-[#6B21E8] transition-all relative"
+              onClick={() => fileInputRef.current?.click()}
             >
               {avatarUploading ? (
                 <Loader2 size={24} className="animate-spin text-white" />
@@ -161,13 +196,13 @@ export function SettingsClient({ profile }: { profile: Profile }) {
                 <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
               ) : (
                 <span className="text-white text-2xl font-bold">
-                  {(profile?.display_name || profile?.username || 'U').charAt(0).toUpperCase()}
+                  {(displayName || username || 'U').charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
             <button
               type="button"
-              onClick={handleAvatarClick}
+              onClick={() => fileInputRef.current?.click()}
               className="absolute bottom-0 right-0 w-6 h-6 bg-[var(--card)] border border-[var(--border)] rounded-full flex items-center justify-center hover:bg-[var(--muted-surface)] transition-colors"
             >
               <Camera size={12} className="text-[var(--text-secondary)]" />
@@ -198,8 +233,12 @@ export function SettingsClient({ profile }: { profile: Profile }) {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">@</span>
             <input
               type="text"
-              value={form.username}
-              onChange={e => handleChange('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              value={username}
+              onChange={e => {
+                setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))
+                setUsernameStatus('idle')
+                setIsDirty(true)
+              }}
               onBlur={checkUsername}
               placeholder="yourhandle"
               className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-7 pr-9 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
@@ -208,9 +247,11 @@ export function SettingsClient({ profile }: { profile: Profile }) {
               <span className="absolute right-3 top-1/2 -translate-y-1/2">{usernameIcon}</span>
             )}
           </div>
-          <p className={`text-xs mt-1 ${usernameStatus === 'available' ? 'text-green-400' : usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
-            {usernameHint}
-          </p>
+          <p className={`text-xs mt-1 ${
+            usernameStatus === 'available' ? 'text-green-400' :
+            usernameStatus === 'taken' || usernameStatus === 'invalid' ? 'text-red-400' :
+            'text-[var(--text-muted)]'
+          }`}>{usernameHint}</p>
         </div>
 
         {/* Display Name */}
@@ -218,8 +259,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Display Name</label>
           <input
             type="text"
-            value={form.display_name}
-            onChange={e => handleChange('display_name', e.target.value)}
+            value={displayName}
+            onChange={e => { setDisplayName(e.target.value); setIsDirty(true) }}
             placeholder="Your name"
             className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
           />
@@ -229,13 +270,18 @@ export function SettingsClient({ profile }: { profile: Profile }) {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-sm font-medium text-[var(--text-secondary)]">Bio</label>
-            <span className={`text-xs ${form.bio.length >= BIO_MAX ? 'text-red-400' : form.bio.length >= BIO_MAX * 0.85 ? 'text-yellow-400' : 'text-[var(--text-muted)]'}`}>
-              {form.bio.length}/{BIO_MAX}
+            <span className={`text-xs ${bio.length >= BIO_MAX ? 'text-red-400' : bio.length >= BIO_MAX * 0.85 ? 'text-yellow-400' : 'text-[var(--text-muted)]'}`}>
+              {bio.length}/{BIO_MAX}
             </span>
           </div>
           <textarea
-            value={form.bio}
-            onChange={e => handleChange('bio', e.target.value)}
+            value={bio}
+            onChange={e => {
+              if (e.target.value.length <= BIO_MAX) {
+                setBio(e.target.value)
+                setIsDirty(true)
+              }
+            }}
             rows={3}
             placeholder="Tell the community about yourself..."
             className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors resize-none"
@@ -247,8 +293,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Website</label>
           <input
             type="text"
-            value={form.website_url}
-            onChange={e => handleChange('website_url', e.target.value)}
+            value={websiteUrl}
+            onChange={e => { setWebsiteUrl(e.target.value); setIsDirty(true) }}
             onBlur={handleWebsiteBlur}
             placeholder="https://yoursite.com"
             className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
@@ -257,13 +303,13 @@ export function SettingsClient({ profile }: { profile: Profile }) {
 
         {/* Twitter */}
         <div>
-          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Twitter / X Handle</label>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Twitter / X</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">@</span>
             <input
               type="text"
-              value={form.twitter_handle}
-              onChange={e => handleChange('twitter_handle', e.target.value)}
+              value={twitterHandle}
+              onChange={e => { setTwitterHandle(e.target.value.replace(/^@+/, '')); setIsDirty(true) }}
               placeholder="username"
               className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-7 pr-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
             />
@@ -275,8 +321,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">GitHub</label>
           <input
             type="url"
-            value={form.github_url}
-            onChange={e => handleChange('github_url', e.target.value)}
+            value={githubUrl}
+            onChange={e => { setGithubUrl(e.target.value); setIsDirty(true) }}
             placeholder="https://github.com/username"
             className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
           />
@@ -287,8 +333,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
           <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">LinkedIn</label>
           <input
             type="url"
-            value={form.linkedin_url}
-            onChange={e => handleChange('linkedin_url', e.target.value)}
+            value={linkedinUrl}
+            onChange={e => { setLinkedinUrl(e.target.value); setIsDirty(true) }}
             placeholder="https://linkedin.com/in/username"
             className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
           />
@@ -305,9 +351,13 @@ export function SettingsClient({ profile }: { profile: Profile }) {
         <button
           type="submit"
           disabled={saving || !isDirty || usernameStatus === 'taken' || usernameStatus === 'invalid'}
-          className="btn-primary text-sm ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="btn-primary text-sm ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
         >
-          {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : 'Save Changes'}
+          {saving ? (
+            <><Loader2 size={14} className="animate-spin" /> Saving...</>
+          ) : (
+            'Save Changes'
+          )}
         </button>
       </div>
     </form>
