@@ -2,10 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User } from 'lucide-react'
+import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User, Shield } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
 import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { useRouter } from 'next/navigation'
@@ -138,13 +137,16 @@ export function Navbar() {
                       className="flex items-center gap-2.5 px-3 py-2 text-sm text-pink-400 hover:text-pink-300 hover:bg-[var(--muted-surface)] transition-colors"
                       onClick={() => setMenuOpen(false)}
                     >
-                      <User size={14} /> Admin Panel
+                      <Shield size={14} /> Admin Panel
                     </Link>
                   )}
                   <div className="border-t border-[var(--border)] mt-1 pt-1">
                     <button
-                      onClick={() => { signOut(); setMenuOpen(false) }}
-                      className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors"
+                      onClick={async () => {
+                        setMenuOpen(false)
+                        await signOut()
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
                     >
                       <LogOut size={14} /> Sign out
                     </button>

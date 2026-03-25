@@ -11,7 +11,7 @@ const items = [
   { href: '/search', label: 'Search', icon: Search },
   { href: '/dashboard/submit', label: 'Submit', icon: Plus, cta: true },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/settings', label: 'Profile', icon: User },
+  { href: '/dashboard/profile', label: 'Profile', icon: User },
 ]
 
 export function MobileBottomNav() {

@@ -57,6 +57,13 @@ const PRICING_OPTIONS: { value: PricingType; label: string; desc: string }[] = [
   { value: 'coming_soon', label: 'Coming Soon', desc: 'Not live yet' },
 ]
 
+const ACCEPTED_THUMBNAIL_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const MAX_THUMBNAIL_SIZE_BYTES = 5 * 1024 * 1024
+
+function sanitizeFileName(fileName: string) {
+  return fileName.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
+}
+
 export function SubmitAppForm() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -165,26 +172,50 @@ export function SubmitAppForm() {
   async function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
 
-    setThumbnailUploading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setThumbnailUploading(false); return }
-
-    const ext = file.name.split('.').pop()
-    const filePath = `${user.id}/${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('thumbnails').upload(filePath, file, { upsert: true })
-
-    if (error) {
-      toast.error('Upload failed: ' + error.message)
-      setThumbnailUploading(false)
+    if (!ACCEPTED_THUMBNAIL_TYPES.includes(file.type)) {
+      toast.error('Please upload a JPG, PNG, WebP, or GIF image')
+      e.target.value = ''
       return
     }
-    const { data: urlData } = supabase.storage.from('thumbnails').getPublicUrl(filePath)
-    setFormData(prev => ({ ...prev, thumbnail_url: urlData.publicUrl }))
-    setThumbnailUploading(false)
-    toast.success('Thumbnail uploaded')
+
+    if (file.size > MAX_THUMBNAIL_SIZE_BYTES) {
+      toast.error('Image must be under 5MB')
+      e.target.value = ''
+      return
+    }
+
+    setThumbnailUploading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('Please sign in to upload a thumbnail')
+        return
+      }
+
+      const filePath = `thumbnails/${user.id}/${Date.now()}-${sanitizeFileName(file.name)}`
+      const { error } = await supabase.storage
+        .from('thumbnails')
+        .upload(filePath, file, { upsert: true })
+
+      if (error) {
+        toast.error('Upload failed: ' + error.message)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('thumbnails').getPublicUrl(filePath)
+      setFormData(prev => ({ ...prev, thumbnail_url: publicUrl }))
+      toast.success('Thumbnail uploaded')
+    } finally {
+      setThumbnailUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  function handleThumbnailRemove() {
+    setFormData(prev => ({ ...prev, thumbnail_url: '' }))
+    if (thumbnailInputRef.current) thumbnailInputRef.current.value = ''
   }
 
   const pricingType = formData.pricing_type || 'free'
@@ -356,24 +387,54 @@ export function SubmitAppForm() {
                 Thumbnail <span className="text-[var(--text-muted)] font-normal">(optional)</span>
               </label>
               <div
-                className="relative w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] hover:border-[#6B21E8] transition-colors overflow-hidden cursor-pointer bg-[var(--muted-surface)] flex items-center justify-center"
+                className="relative w-[200px] aspect-video rounded-xl border-2 border-dashed border-[var(--border)] hover:border-[#6B21E8] transition-colors overflow-hidden cursor-pointer bg-[var(--muted-surface)] flex items-center justify-center"
                 onClick={() => thumbnailInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    thumbnailInputRef.current?.click()
+                  }
+                }}
               >
                 {thumbnailUploading ? (
-                  <Loader2 size={24} className="animate-spin text-[var(--text-muted)]" />
+                  <div className="text-center py-6">
+                    <Loader2 size={24} className="animate-spin text-[var(--text-muted)] mx-auto mb-2" />
+                    <p className="text-xs text-[var(--text-muted)]">Uploading thumbnail...</p>
+                  </div>
                 ) : formData.thumbnail_url ? (
                   <>
                     <Image src={formData.thumbnail_url} alt="Thumbnail" fill className="object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/35 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Camera size={20} className="text-white" />
                     </div>
                   </>
                 ) : (
                   <div className="text-center py-6">
                     <Camera size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-                    <p className="text-xs text-[var(--text-muted)]">Click to upload thumbnail</p>
-                    <p className="text-xs text-[var(--text-muted)]">JPG, PNG, WebP · Max 5MB</p>
+                    <p className="text-xs text-[var(--text-muted)]">Upload thumbnail</p>
+                    <p className="text-xs text-[var(--text-muted)]">JPG, PNG, WebP, GIF</p>
+                    <p className="text-xs text-[var(--text-muted)]">Max 5MB</p>
                   </div>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-3">
+                <button
+                  type="button"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                  className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  {formData.thumbnail_url ? 'Replace image' : 'Choose image'}
+                </button>
+                {formData.thumbnail_url && (
+                  <button
+                    type="button"
+                    onClick={handleThumbnailRemove}
+                    className="text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Remove
+                  </button>
                 )}
               </div>
               <input

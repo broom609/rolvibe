@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/types'
+import { toast } from 'sonner'
 
 export function useAuth() {
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,7 +48,16 @@ export function useAuth() {
 
   async function signOut() {
     const supabase = createClient()
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      toast.error('Sign out failed: ' + error.message)
+      return
+    }
+
+    setUser(null)
+    setProfile(null)
+    router.push('/')
+    router.refresh()
   }
 
   return { user, profile, loading, signOut }

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { SettingsClient } from './SettingsClient'
+import { AccountSettingsClient } from './AccountSettingsClient'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -8,9 +8,12 @@ export default async function SettingsPage() {
   if (!user) redirect('/login?next=/dashboard/settings')
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-3xl space-y-6">
       <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Settings</h1>
-      <SettingsClient />
+      <p className="text-sm text-[var(--text-secondary)] -mt-3">
+        Manage your account email, notification preferences, password reset, and account deletion.
+      </p>
+      <AccountSettingsClient />
     </div>
   )
 }
