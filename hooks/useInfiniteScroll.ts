@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { App, FeedCursor } from '@/types'
-import { createClient } from '@/lib/supabase/client'
+import { App } from '@/types'
 
 interface UseInfiniteScrollOptions {
   category?: string
@@ -15,77 +14,74 @@ export function useInfiniteScroll({ category, pageSize = 12 }: UseInfiniteScroll
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
-  const [cursor, setCursor] = useState<FeedCursor | null>(null)
+  const offsetRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+  // Ref (not state) so the observer callback never goes stale and never
+  // causes the observer effect to re-run on every page load.
+  const isFetchingMore = useRef(false)
 
-  const fetchPage = useCallback(async (cur: FeedCursor | null, reset = false) => {
-    const supabase = createClient()
+  const fetchPage = useCallback(async (offset: number, reset: boolean): Promise<number> => {
+    const params = new URLSearchParams({ offset: String(offset), limit: String(pageSize) })
+    if (category) params.set('category', category)
 
-    let query = supabase
-      .from('apps')
-      .select('*, creator:profiles(id, username, display_name, avatar_url, is_verified)')
-      .eq('status', 'active')
-      .order('score', { ascending: false })
-      .order('published_at', { ascending: false })
-      .limit(pageSize)
-
-    if (category) {
-      query = query.eq('category', category)
+    const res = await fetch(`/api/apps?${params}`)
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error ?? `HTTP ${res.status}`)
     }
 
-    if (cur) {
-      query = query.lt('score', cur.score)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      setError(error.message)
-      return
-    }
-
-    const items = (data || []) as App[]
+    const { apps: items, hasMore: more } = await res.json() as { apps: App[]; hasMore: boolean }
+    offsetRef.current = offset + items.length
+    setHasMore(more)
     setApps(prev => reset ? items : [...prev, ...items])
-    setHasMore(items.length === pageSize)
-
-    if (items.length > 0) {
-      const last = items[items.length - 1]
-      setCursor({ score: last.score, published_at: last.published_at || last.created_at })
-    }
+    return items.length
   }, [category, pageSize])
 
-  // Initial load
+  // Initial load — also reruns when category filter changes.
   useEffect(() => {
+    let cancelled = false
+    offsetRef.current = 0
     setLoading(true)
-    setCursor(null)
+    setError(null)
     setApps([])
     setHasMore(true)
-    fetchPage(null, true).finally(() => setLoading(false))
+
+    fetchPage(0, true)
+      .catch(err => { if (!cancelled) setError((err as Error).message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+
+    return () => { cancelled = true }
   }, [category, fetchPage])
 
-  // Intersection observer for infinite scroll
+  // Observer — only attaches after initial load completes (loading=false)
+  // so sentinelRef.current is guaranteed to be in the DOM.
   useEffect(() => {
-    if (!sentinelRef.current || !hasMore) return
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasMore || loading) return
 
-    const observer = new IntersectionObserver(
-      async ([entry]) => {
-        if (entry.isIntersecting && !loadingMore && hasMore) {
-          setLoadingMore(true)
-          await fetchPage(cursor)
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || isFetchingMore.current) return
+      isFetchingMore.current = true
+      setLoadingMore(true)
+      fetchPage(offsetRef.current, false)
+        .catch(err => setError((err as Error).message))
+        .finally(() => {
+          isFetchingMore.current = false
           setLoadingMore(false)
-        }
-      },
-      { threshold: 0.1 }
-    )
+        })
+    }, { threshold: 0.1 })
 
-    observer.observe(sentinelRef.current)
+    observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [cursor, hasMore, loadingMore, fetchPage])
+  }, [loading, hasMore, fetchPage])
 
   function retry() {
+    offsetRef.current = 0
     setError(null)
     setLoading(true)
-    fetchPage(null, true).finally(() => setLoading(false))
+    fetchPage(0, true)
+      .catch(err => setError((err as Error).message))
+      .finally(() => setLoading(false))
   }
 
   return { apps, loading, loadingMore, error, hasMore, sentinelRef, retry }

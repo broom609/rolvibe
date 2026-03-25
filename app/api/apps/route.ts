@@ -4,6 +4,29 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { slugify } from '@/lib/utils'
 import { sendAppSubmittedEmail } from '@/lib/resend'
 
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const offset = Math.max(0, parseInt(searchParams.get('offset') ?? '0', 10))
+  const limit = Math.min(48, Math.max(1, parseInt(searchParams.get('limit') ?? '12', 10)))
+  const category = searchParams.get('category')
+
+  const admin = createAdminClient()
+  let query = admin
+    .from('apps')
+    .select('*, creator:profiles(id, username, display_name, avatar_url, is_verified)')
+    .eq('status', 'active')
+    .order('score', { ascending: false })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (category) query = query.eq('category', category)
+
+  const { data, error } = await query
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ apps: data ?? [], hasMore: (data ?? []).length === limit })
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
