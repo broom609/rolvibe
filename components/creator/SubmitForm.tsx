@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -75,10 +75,12 @@ function isAcceptedThumbnail(file: File) {
 
 export function SubmitAppForm() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [tagInput, setTagInput] = useState('')
   const [thumbnailUploading, setThumbnailUploading] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState<Partial<FormData>>({
     pricing_type: 'free',
@@ -92,6 +94,26 @@ export function SubmitAppForm() {
 
   const { register: reg1, handleSubmit: hs1, formState: { errors: e1 } } = useForm<Step1Data>({ resolver: zodResolver(step1Schema) })
   const { register: reg2, handleSubmit: hs2, formState: { errors: e2 } } = useForm<Step2Data>({ resolver: zodResolver(step2Schema) })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (isMounted) setCurrentUserId(user?.id ?? null)
+    }
+
+    loadUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isMounted) setCurrentUserId(session?.user?.id ?? null)
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [supabase])
 
   function onStep1(data: Step1Data) {
     setFormData(prev => ({ ...prev, app_url: data.app_url }))
@@ -196,14 +218,13 @@ export function SubmitAppForm() {
 
     setThumbnailUploading(true)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const userId = currentUserId || (await supabase.auth.getUser()).data.user?.id || null
+      if (!userId) {
         toast.error('Please sign in to upload a thumbnail')
         return
       }
 
-      const filePath = `${user.id}/${Date.now()}-${sanitizeFileName(file.name)}`
+      const filePath = `thumbnails/${userId}/${Date.now()}-${sanitizeFileName(file.name)}`
       const { error } = await supabase.storage
         .from('thumbnails')
         .upload(filePath, file, {

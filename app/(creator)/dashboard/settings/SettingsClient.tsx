@@ -19,7 +19,7 @@ function normalizeUrl(value: string) {
 }
 
 export function SettingsClient() {
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [loaded, setLoaded] = useState(false)
@@ -43,39 +43,43 @@ export function SettingsClient() {
     let isMounted = true
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user || !isMounted) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || !isMounted) {
+          return
+        }
+
+        setUserId(user.id)
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (error) {
+          console.error('Profile load error:', error)
+          toast.error('Failed to load profile')
+        }
+
+        if (data && isMounted) {
+          setDisplayName(data.display_name || '')
+          setUsername(data.username || '')
+          setOriginalUsername(data.username || '')
+          setBio(data.bio || '')
+          setWebsiteUrl(data.website_url || '')
+          setTwitterHandle(data.twitter_handle || '')
+          setGithubUrl(data.github_url || '')
+          setLinkedinUrl(data.linkedin_url || '')
+          setAvatarUrl(data.avatar_url || '')
+          setIsDirty(false)
+        }
+      } catch (error) {
+        console.error('Profile page load failed:', error)
+        toast.error('Failed to load your profile')
+      } finally {
         if (isMounted) setLoaded(true)
-        return
       }
-
-      setUserId(user.id)
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (error) {
-        console.error('Profile load error:', error)
-        toast.error('Failed to load profile')
-      }
-
-      if (data && isMounted) {
-        setDisplayName(data.display_name || '')
-        setUsername(data.username || '')
-        setOriginalUsername(data.username || '')
-        setBio(data.bio || '')
-        setWebsiteUrl(data.website_url || '')
-        setTwitterHandle(data.twitter_handle || '')
-        setGithubUrl(data.github_url || '')
-        setLinkedinUrl(data.linkedin_url || '')
-        setAvatarUrl(data.avatar_url || '')
-        setIsDirty(false)
-      }
-
-      if (isMounted) setLoaded(true)
     }
 
     load()

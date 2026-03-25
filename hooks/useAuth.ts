@@ -9,13 +9,12 @@ import { toast } from 'sonner'
 
 export function useAuth() {
   const router = useRouter()
+  const [supabase] = useState(() => createClient())
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
-
     async function loadProfile(currentUser: User | null) {
       if (!currentUser) {
         setProfile(null)
@@ -38,10 +37,17 @@ export function useAuth() {
     }
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      await loadProfile(user)
-      setLoading(false)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+        await loadProfile(user)
+      } catch (error) {
+        console.error('useAuth load error:', error)
+        setUser(null)
+        setProfile(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
     load()
@@ -53,7 +59,7 @@ export function useAuth() {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   async function signOut() {
     const supabase = createClient()

@@ -20,7 +20,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
 
 export function AccountSettingsClient() {
   const router = useRouter()
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
 
   const [loaded, setLoaded] = useState(false)
   const [email, setEmail] = useState('')
@@ -33,23 +33,27 @@ export function AccountSettingsClient() {
     let isMounted = true
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!isMounted) return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!isMounted) return
 
-      if (user) {
-        setEmail(user.email || '')
+        if (user) {
+          setEmail(user.email || '')
 
-        const storedPreferences = user.user_metadata?.notification_preferences
-        if (storedPreferences && typeof storedPreferences === 'object') {
-          setNotificationPreferences({
-            productUpdates: Boolean(storedPreferences.productUpdates),
-            creatorReplies: Boolean(storedPreferences.creatorReplies),
-            weeklyRoundup: Boolean(storedPreferences.weeklyRoundup),
-          })
+          const storedPreferences = user.user_metadata?.notification_preferences
+          if (storedPreferences && typeof storedPreferences === 'object') {
+            setNotificationPreferences({
+              productUpdates: Boolean(storedPreferences.productUpdates),
+              creatorReplies: Boolean(storedPreferences.creatorReplies),
+              weeklyRoundup: Boolean(storedPreferences.weeklyRoundup),
+            })
+          }
         }
+      } catch (error) {
+        console.error('Account settings load failed:', error)
+      } finally {
+        if (isMounted) setLoaded(true)
       }
-
-      setLoaded(true)
     }
 
     load()
