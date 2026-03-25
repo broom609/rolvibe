@@ -24,15 +24,10 @@ const step2Schema = z.object({
   built_with: z.string().min(1, 'Select a tool'),
 })
 
-const step3Schema = z.object({
-  pricing_type: z.enum(['free', 'paid', 'subscription', 'invite_only', 'coming_soon']),
-  price_cents: z.number().min(99).optional(),
-  subscription_price_cents: z.number().min(99).optional(),
-})
-
 type Step1Data = z.infer<typeof step1Schema>
 type Step2Data = z.infer<typeof step2Schema>
-type Step3Data = z.infer<typeof step3Schema>
+
+type PricingType = 'free' | 'paid' | 'subscription' | 'coming_soon'
 
 type FormData = {
   app_url: string
@@ -42,15 +37,23 @@ type FormData = {
   category: string
   built_with: string
   tags: string[]
-  pricing_type: 'free' | 'paid' | 'subscription' | 'invite_only' | 'coming_soon'
-  price_cents?: number
-  subscription_price_cents?: number
+  pricing_type: PricingType
+  price_dollars: string
+  subscription_price_dollars: string
+  external_payment_url: string
   is_nsfw: boolean
   thumbnail_url?: string
   screenshots: string[]
 }
 
 const STEPS = ['App URL', 'App Info', 'Pricing', 'Review & Submit']
+
+const PRICING_OPTIONS: { value: PricingType; label: string; desc: string }[] = [
+  { value: 'free', label: 'Free', desc: 'Anyone can try it' },
+  { value: 'paid', label: 'Paid', desc: 'One-time payment' },
+  { value: 'subscription', label: 'Subscription', desc: 'Monthly recurring' },
+  { value: 'coming_soon', label: 'Coming Soon', desc: 'Not live yet' },
+]
 
 export function SubmitAppForm() {
   const router = useRouter()
@@ -59,6 +62,9 @@ export function SubmitAppForm() {
   const [tagInput, setTagInput] = useState('')
   const [formData, setFormData] = useState<Partial<FormData>>({
     pricing_type: 'free',
+    price_dollars: '',
+    subscription_price_dollars: '',
+    external_payment_url: '',
     tags: [],
     screenshots: [],
     is_nsfw: false,
@@ -66,12 +72,6 @@ export function SubmitAppForm() {
 
   const { register: reg1, handleSubmit: hs1, formState: { errors: e1 } } = useForm<Step1Data>({ resolver: zodResolver(step1Schema) })
   const { register: reg2, handleSubmit: hs2, formState: { errors: e2 } } = useForm<Step2Data>({ resolver: zodResolver(step2Schema) })
-  const { register: reg3, handleSubmit: hs3, watch: w3, formState: { errors: e3 } } = useForm<Step3Data>({
-    resolver: zodResolver(step3Schema),
-    defaultValues: { pricing_type: 'free' },
-  })
-
-  const pricingType = w3('pricing_type') || formData.pricing_type || 'free'
 
   function onStep1(data: Step1Data) {
     setFormData(prev => ({ ...prev, app_url: data.app_url }))
@@ -83,24 +83,60 @@ export function SubmitAppForm() {
     setStep(2)
   }
 
-  function onStep3(data: Step3Data) {
-    setFormData(prev => ({ ...prev, ...data }))
+  function handleStep3Submit(e: React.FormEvent) {
+    e.preventDefault()
+    const pt = formData.pricing_type || 'free'
+    if (pt === 'paid') {
+      const v = parseFloat(formData.price_dollars || '')
+      if (isNaN(v) || v < 0.99) {
+        toast.error('Enter a valid price (minimum $0.99)')
+        return
+      }
+    }
+    if (pt === 'subscription') {
+      const v = parseFloat(formData.subscription_price_dollars || '')
+      if (isNaN(v) || v < 0.99) {
+        toast.error('Enter a valid monthly price (minimum $0.99)')
+        return
+      }
+    }
     setStep(3)
   }
 
   async function handleFinalSubmit() {
     setSubmitting(true)
     try {
+      const pt = formData.pricing_type || 'free'
+      const price_cents = pt === 'paid' ? Math.round(parseFloat(formData.price_dollars || '0') * 100) : null
+      const subscription_price_cents = pt === 'subscription' ? Math.round(parseFloat(formData.subscription_price_dollars || '0') * 100) : null
+
+      const payload = {
+        name: formData.name,
+        tagline: formData.tagline,
+        description: formData.description || null,
+        app_url: formData.app_url,
+        category: formData.category,
+        built_with: formData.built_with,
+        tags: formData.tags || [],
+        pricing_type: pt,
+        price_cents,
+        subscription_price_cents,
+        external_payment_url: formData.external_payment_url?.trim() || null,
+        is_nsfw: formData.is_nsfw || false,
+        thumbnail_url: formData.thumbnail_url || null,
+        screenshots: formData.screenshots || [],
+      }
+
       const res = await fetch('/api/apps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || 'Submission failed')
       }
-      track('app_submitted', { pricing_type: formData.pricing_type, built_with: formData.built_with })
+      track('app_submitted', { pricing_type: pt, built_with: formData.built_with })
       toast.success("App submitted! We'll review it within 24 hours.")
       router.push('/dashboard')
     } catch (err: unknown) {
@@ -122,6 +158,8 @@ export function SubmitAppForm() {
     setFormData(prev => ({ ...prev, tags: (prev.tags || []).filter(t => t !== tag) }))
   }
 
+  const pricingType = formData.pricing_type || 'free'
+
   const previewApp: App = {
     id: 'preview',
     creator_id: '',
@@ -135,9 +173,10 @@ export function SubmitAppForm() {
     category: formData.category || 'AI Tools',
     tags: formData.tags || [],
     built_with: formData.built_with || null,
-    pricing_type: formData.pricing_type || 'free',
-    price_cents: formData.price_cents || null,
-    subscription_price_cents: formData.subscription_price_cents || null,
+    pricing_type: pricingType,
+    price_cents: formData.price_dollars ? Math.round(parseFloat(formData.price_dollars) * 100) : null,
+    subscription_price_cents: formData.subscription_price_dollars ? Math.round(parseFloat(formData.subscription_price_dollars) * 100) : null,
+    external_payment_url: formData.external_payment_url || null,
     stripe_product_id: null,
     stripe_price_id: null,
     status: 'pending',
@@ -192,7 +231,7 @@ export function SubmitAppForm() {
               {e1.app_url && <p className="text-xs text-red-400 mt-1">{e1.app_url.message}</p>}
             </div>
             <div className="flex justify-end">
-              <button type="submit" className="btn-primary text-sm">Next <ChevronRight size={14} /></button>
+              <button type="submit" className="btn-primary text-sm flex items-center gap-1.5">Next <ChevronRight size={14} /></button>
             </div>
           </form>
         )}
@@ -205,6 +244,7 @@ export function SubmitAppForm() {
               <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">App Name *</label>
               <input
                 {...reg2('name')}
+                defaultValue={formData.name}
                 placeholder="My Vibe App"
                 className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8]"
               />
@@ -214,15 +254,17 @@ export function SubmitAppForm() {
               <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Tagline *</label>
               <input
                 {...reg2('tagline')}
+                defaultValue={formData.tagline}
                 placeholder="One sentence that sells your app"
                 className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8]"
               />
               {e2.tagline && <p className="text-xs text-red-400 mt-1">{e2.tagline.message}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Description (optional, markdown)</label>
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Description (optional)</label>
               <textarea
                 {...reg2('description')}
+                defaultValue={formData.description}
                 rows={4}
                 placeholder="Tell people what your app does..."
                 className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] resize-none"
@@ -231,7 +273,11 @@ export function SubmitAppForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Category *</label>
-                <select {...reg2('category')} className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]">
+                <select
+                  {...reg2('category')}
+                  defaultValue={formData.category || ''}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
+                >
                   <option value="">Select...</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -239,7 +285,11 @@ export function SubmitAppForm() {
               </div>
               <div>
                 <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Built With *</label>
-                <select {...reg2('built_with')} className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]">
+                <select
+                  {...reg2('built_with')}
+                  defaultValue={formData.built_with || ''}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
+                >
                   <option value="">Select tool...</option>
                   {BUILT_WITH_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -272,66 +322,92 @@ export function SubmitAppForm() {
             </div>
             <div className="flex justify-between">
               <button type="button" onClick={() => setStep(0)} className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"><ChevronLeft size={14} /> Back</button>
-              <button type="submit" className="btn-primary text-sm">Next <ChevronRight size={14} /></button>
+              <button type="submit" className="btn-primary text-sm flex items-center gap-1.5">Next <ChevronRight size={14} /></button>
             </div>
           </form>
         )}
 
-        {/* Step 3: Pricing */}
+        {/* Step 3: Pricing — plain state, no RHF/Zod to avoid NaN validation issues */}
         {step === 2 && (
-          <form onSubmit={hs3(onStep3)} className="space-y-4">
+          <form onSubmit={handleStep3Submit} className="space-y-5">
             <h2 className="font-semibold text-[var(--text-primary)] mb-1">Step 3 — Pricing</h2>
+
             <div>
-              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-2">Pricing Type *</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { value: 'free', label: 'Free', desc: 'Anyone can try it' },
-                  { value: 'paid', label: 'Paid', desc: 'One-time payment' },
-                  { value: 'subscription', label: 'Subscription', desc: 'Monthly recurring' },
-                  { value: 'invite_only', label: 'Invite Only', desc: 'Limited access' },
-                  { value: 'coming_soon', label: 'Coming Soon', desc: 'Not live yet' },
-                ].map(({ value, label, desc }) => (
-                  <label key={value} className={`cursor-pointer border rounded-xl p-3 transition-colors ${
-                    pricingType === value ? 'border-[#6B21E8] bg-[#6B21E8]/10' : 'border-[var(--border)] hover:border-[var(--border-strong)]'
-                  }`}>
-                    <input {...reg3('pricing_type')} type="radio" value={value} className="sr-only" />
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-2">Pricing Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                {PRICING_OPTIONS.map(({ value, label, desc }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, pricing_type: value }))}
+                    className={`text-left border rounded-xl p-3 transition-colors ${
+                      pricingType === value
+                        ? 'border-[#6B21E8] bg-[#6B21E8]/10'
+                        : 'border-[var(--border)] hover:border-[var(--border-strong)]'
+                    }`}
+                  >
                     <p className="text-sm font-medium text-[var(--text-primary)]">{label}</p>
                     <p className="text-xs text-[var(--text-muted)]">{desc}</p>
-                  </label>
+                  </button>
                 ))}
               </div>
             </div>
+
             {pricingType === 'paid' && (
               <div>
                 <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Price (USD) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.99"
-                  placeholder="9.99"
-                  {...reg3('price_cents', { setValueAs: (v: string) => Math.round(parseFloat(v) * 100) })}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.99"
+                    placeholder="9.99"
+                    value={formData.price_dollars || ''}
+                    onChange={e => setFormData(prev => ({ ...prev, price_dollars: e.target.value }))}
+                    className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-7 pr-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
+                  />
+                </div>
               </div>
             )}
+
             {pricingType === 'subscription' && (
               <div>
                 <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">Monthly Price (USD) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.99"
-                  placeholder="9.99"
-                  {...reg3('subscription_price_cents', { setValueAs: (v: string) => Math.round(parseFloat(v) * 100) })}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-sm">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.99"
+                    placeholder="9.99"
+                    value={formData.subscription_price_dollars || ''}
+                    onChange={e => setFormData(prev => ({ ...prev, subscription_price_dollars: e.target.value }))}
+                    className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-7 pr-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6B21E8]"
+                  />
+                </div>
               </div>
             )}
-            {e3.pricing_type && <p className="text-xs text-red-400">{e3.pricing_type.message}</p>}
-            <p className="text-xs text-[var(--text-muted)]">Stripe Connect setup required to receive payments — you can connect after submission.</p>
-            <div className="flex justify-between">
+
+            {(pricingType === 'paid' || pricingType === 'subscription') && (
+              <div>
+                <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                  Payment / Checkout URL <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://gumroad.com/l/your-app"
+                  value={formData.external_payment_url || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, external_payment_url: e.target.value }))}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8]"
+                />
+                <p className="text-xs text-[var(--text-muted)] mt-1">Where users go to pay (Gumroad, Stripe checkout, etc.)</p>
+              </div>
+            )}
+
+            <div className="flex justify-between pt-2">
               <button type="button" onClick={() => setStep(1)} className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"><ChevronLeft size={14} /> Back</button>
-              <button type="submit" className="btn-primary text-sm">Review <ChevronRight size={14} /></button>
+              <button type="submit" className="btn-primary text-sm flex items-center gap-1.5">Review <ChevronRight size={14} /></button>
             </div>
           </form>
         )}
@@ -339,8 +415,8 @@ export function SubmitAppForm() {
         {/* Step 4: Review */}
         {step === 3 && (
           <div className="space-y-6">
-            <h2 className="font-semibold text-[var(--text-primary)]">Step 4 — Review & Submit</h2>
-            <p className="text-sm text-[var(--text-secondary)]">Here&apos;s how your app will look on Rolvibe:</p>
+            <h2 className="font-semibold text-[var(--text-primary)]">Step 4 — Review &amp; Submit</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Here's how your app will look on Rolvibe:</p>
             <div className="max-w-[280px]">
               <AppCard app={previewApp} />
             </div>
@@ -358,7 +434,7 @@ export function SubmitAppForm() {
                 <input type="checkbox" required className="w-4 h-4 mt-0.5 rounded border-[var(--border)] bg-[var(--input-bg)] accent-[#6B21E8]" />
                 <span className="text-sm text-[var(--text-secondary)]">
                   I confirm this app is my own work and complies with{' '}
-                  <a href="/guidelines" target="_blank" className="text-[var(--text-primary)] underline">Rolvibe&apos;s creator guidelines</a>.
+                  <a href="/guidelines" target="_blank" className="text-[var(--text-primary)] underline">Rolvibe's creator guidelines</a>.
                 </span>
               </label>
             </div>

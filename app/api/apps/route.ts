@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const {
     name, tagline, description, app_url, category, tags, built_with,
-    pricing_type, price_cents, subscription_price_cents, is_nsfw,
-    thumbnail_url, screenshots,
+    pricing_type, price_cents, subscription_price_cents, external_payment_url,
+    is_nsfw, thumbnail_url, screenshots,
   } = body
 
   // Generate unique slug
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     built_with, pricing_type,
     price_cents: pricing_type === 'paid' ? price_cents : null,
     subscription_price_cents: pricing_type === 'subscription' ? subscription_price_cents : null,
+    external_payment_url: external_payment_url || null,
     is_nsfw: is_nsfw || false,
     thumbnail_url, screenshots: screenshots || [],
     slug,

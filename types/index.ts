@@ -12,6 +12,8 @@ export interface Profile {
   bio: string | null
   website_url: string | null
   twitter_handle: string | null
+  github_url: string | null
+  linkedin_url: string | null
   role: UserRole
   stripe_account_id: string | null
   stripe_onboarded: boolean
@@ -38,6 +40,7 @@ export interface App {
   pricing_type: PricingType
   price_cents: number | null
   subscription_price_cents: number | null
+  external_payment_url: string | null
   stripe_product_id: string | null
   stripe_price_id: string | null
   status: AppStatus

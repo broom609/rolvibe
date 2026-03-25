@@ -24,6 +24,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
     bio: profile?.bio || '',
     website_url: profile?.website_url || '',
     twitter_handle: profile?.twitter_handle || '',
+    github_url: profile?.github_url || '',
+    linkedin_url: profile?.linkedin_url || '',
   })
 
   const initialForm = useRef(form)
@@ -110,6 +112,8 @@ export function SettingsClient({ profile }: { profile: Profile }) {
         bio: form.bio.trim() || null,
         website_url: form.website_url.trim() || null,
         twitter_handle: form.twitter_handle.trim() || null,
+        github_url: form.github_url.trim() || null,
+        linkedin_url: form.linkedin_url.trim() || null,
         avatar_url: avatarUrl || null,
         updated_at: new Date().toISOString(),
       })
@@ -264,6 +268,30 @@ export function SettingsClient({ profile }: { profile: Profile }) {
               className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-7 pr-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
             />
           </div>
+        </div>
+
+        {/* GitHub */}
+        <div>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">GitHub</label>
+          <input
+            type="url"
+            value={form.github_url}
+            onChange={e => handleChange('github_url', e.target.value)}
+            placeholder="https://github.com/username"
+            className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
+          />
+        </div>
+
+        {/* LinkedIn */}
+        <div>
+          <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">LinkedIn</label>
+          <input
+            type="url"
+            value={form.linkedin_url}
+            onChange={e => handleChange('linkedin_url', e.target.value)}
+            placeholder="https://linkedin.com/in/username"
+            className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-1 focus:ring-[#6B21E8]/50 transition-colors"
+          />
         </div>
       </div>
 

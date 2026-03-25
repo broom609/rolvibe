@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Globe, Twitter, ShieldCheck, Zap, Heart } from 'lucide-react'
+import { ShieldCheck, Zap, Github, Linkedin, Twitter, Globe } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppCard } from '@/components/feed/AppCard'
 import { formatTryCount, formatDate } from '@/lib/utils'
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   if (!data) return { title: 'Creator Not Found — Rolvibe' }
   return {
     title: `${data.profile.display_name || data.profile.username} — Rolvibe`,
-    description: data.profile.bio || `Discover apps by @${data.profile.username} on Rolvibe.`,
+    description: data.profile.bio || `Discover vibes by @${data.profile.username} on Rolvibe.`,
   }
 }
 
@@ -46,22 +46,50 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
 
   const { profile, apps } = data
   const totalTries = apps.reduce((sum, app) => sum + (app.try_count || 0), 0)
-  const totalSaves = apps.reduce((sum, app) => sum + (app.favorite_count || 0), 0)
+
+  const socialLinks = [
+    profile.github_url && {
+      href: profile.github_url,
+      icon: Github,
+      label: profile.github_url.replace(/^https?:\/\/(www\.)?github\.com\//, 'github.com/'),
+      className: 'bg-[#24292e] text-white hover:bg-[#2f363d]',
+    },
+    profile.linkedin_url && {
+      href: profile.linkedin_url,
+      icon: Linkedin,
+      label: profile.linkedin_url.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, 'linkedin.com/in/'),
+      className: 'bg-[#0077b5] text-white hover:bg-[#006399]',
+    },
+    profile.twitter_handle && {
+      href: `https://twitter.com/${profile.twitter_handle}`,
+      icon: Twitter,
+      label: `@${profile.twitter_handle}`,
+      className: 'bg-black text-white hover:bg-[#1a1a1a]',
+    },
+    profile.website_url && {
+      href: profile.website_url,
+      icon: Globe,
+      label: profile.website_url.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+      className: 'bg-[#6B21E8] text-white hover:bg-[#5b18c8]',
+    },
+  ].filter(Boolean) as { href: string; icon: React.ElementType; label: string; className: string }[]
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
-      {/* Hero banner */}
+      {/* Profile header card */}
       <div className="relative rounded-2xl overflow-hidden mb-8 bg-[var(--card)] border border-[var(--border)]">
-        {/* Gradient background */}
-        <div className="h-32 bg-gradient-to-br from-[#FF2D9B]/30 via-[#6B21E8]/20 to-[#00B4FF]/20 relative">
-          <div className="absolute inset-0 opacity-40" style={{ background: 'radial-gradient(ellipse at 30% 50%, #FF2D9B 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #6B21E8 0%, transparent 60%)' }} />
+        {/* Gradient banner */}
+        <div className="h-28 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#FF2D9B]/40 via-[#6B21E8]/30 to-[#00B4FF]/20" />
+          <div className="absolute inset-0 opacity-50" style={{ background: 'radial-gradient(ellipse at 25% 60%, #FF2D9B 0%, transparent 55%), radial-gradient(ellipse at 75% 40%, #6B21E8 0%, transparent 55%)' }} />
         </div>
 
-        {/* Profile info */}
         <div className="px-6 pb-6">
-          {/* Avatar — overlaps banner */}
-          <div className="relative -mt-14 mb-4 inline-block">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#FF2D9B] to-[#6B21E8] flex items-center justify-center text-white font-black text-4xl flex-shrink-0 overflow-hidden relative border-4 border-[var(--background)]">
+          {/* Avatar overlapping banner */}
+          <div className="relative -mt-12 mb-4 inline-block">
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white font-black text-4xl overflow-hidden relative border-4 border-[var(--background)] ${
+              profile.is_verified ? 'ring-2 ring-[#6B21E8]' : ''
+            } bg-gradient-to-br from-[#FF2D9B] to-[#6B21E8]`}>
               {profile.avatar_url ? (
                 <Image src={profile.avatar_url} alt={profile.username} fill className="object-cover" />
               ) : (
@@ -70,87 +98,62 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
             </div>
             {profile.is_verified && (
               <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[var(--background)] flex items-center justify-center">
-                <ShieldCheck size={18} className="text-blue-400" />
+                <ShieldCheck size={17} className="text-blue-400" />
               </div>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--text-primary)] leading-tight">
-                {profile.display_name || profile.username}
-              </h1>
-              <p className="text-[var(--text-muted)] text-sm mb-3">@{profile.username}</p>
-              {profile.bio && (
-                <p className="text-[var(--text-secondary)] text-sm max-w-lg leading-relaxed mb-4">
-                  {profile.bio}
-                </p>
-              )}
+          {/* Name + username */}
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] leading-tight">
+            {profile.display_name || profile.username}
+          </h1>
+          <p className="text-sm text-[var(--text-muted)] mb-3">@{profile.username}</p>
 
-              {/* Links */}
-              <div className="flex flex-wrap gap-3">
-                {profile.website_url && (
-                  <a
-                    href={profile.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                  >
-                    <Globe size={14} />
-                    {profile.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                  </a>
-                )}
-                {profile.twitter_handle && (
-                  <a
-                    href={`https://twitter.com/${profile.twitter_handle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[#1d9bf0] transition-colors"
-                  >
-                    <Twitter size={14} />
-                    @{profile.twitter_handle}
-                  </a>
-                )}
-                <span className="text-sm text-[var(--text-muted)]">
-                  Member since {formatDate(profile.created_at)}
-                </span>
-              </div>
-            </div>
+          {/* Bio */}
+          {profile.bio && (
+            <p className="text-sm text-[var(--text-secondary)] max-w-xl leading-relaxed mb-4">
+              {profile.bio}
+            </p>
+          )}
 
-            {/* Stats */}
-            <div className="flex gap-3 sm:flex-col sm:items-end">
-              <div className="flex gap-3">
-                <div className="bg-[var(--muted-surface)] rounded-xl px-4 py-3 text-center min-w-[72px]">
-                  <div className="flex items-center justify-center gap-1 text-[var(--text-muted)] mb-1">
-                    <Zap size={12} />
-                  </div>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{formatTryCount(totalTries)}</p>
-                  <p className="text-xs text-[var(--text-muted)]">total tries</p>
-                </div>
-                <div className="bg-[var(--muted-surface)] rounded-xl px-4 py-3 text-center min-w-[72px]">
-                  <div className="flex items-center justify-center gap-1 text-pink-400 mb-1">
-                    <Heart size={12} />
-                  </div>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{formatTryCount(totalSaves)}</p>
-                  <p className="text-xs text-[var(--text-muted)]">total saves</p>
-                </div>
-                <div className="bg-[var(--muted-surface)] rounded-xl px-4 py-3 text-center min-w-[60px]">
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{apps.length}</p>
-                  <p className="text-xs text-[var(--text-muted)]">apps</p>
-                </div>
-              </div>
+          {/* Social badges */}
+          {socialLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {socialLinks.map(({ href, icon: Icon, label, className }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-opacity hover:opacity-90 ${className}`}
+                >
+                  <Icon size={12} />
+                  <span className="truncate max-w-[160px]">{label}</span>
+                </a>
+              ))}
             </div>
+          )}
+
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)]">
+            <span>Member since {formatDate(profile.created_at)}</span>
+            <span className="flex items-center gap-1">
+              <Zap size={11} />
+              {formatTryCount(totalTries)} total tries
+            </span>
+            <span>{apps.length} {apps.length === 1 ? 'vibe' : 'vibes'}</span>
           </div>
         </div>
       </div>
 
       {/* Apps grid */}
       <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">
-        Apps by {profile.display_name || profile.username}
+        Vibes by {profile.display_name || profile.username}
       </h2>
       {apps.length === 0 ? (
         <div className="text-center py-16 bg-[var(--card)] border border-[var(--border)] rounded-2xl">
-          <p className="text-[var(--text-muted)] text-sm">No apps published yet.</p>
+          <p className="text-[var(--text-muted)] text-sm">No vibes yet.</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Check back soon.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
