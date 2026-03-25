@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Search } from 'lucide-react'
 import { App, CATEGORIES } from '@/types'
 import { CategoryPill } from '@/components/ui/CategoryPill'
 import { FeedSection } from './FeedSection'
@@ -17,6 +18,8 @@ interface HomeFeedProps {
 
 export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFeedProps) {
   const [activeCategory, setActiveCategory] = useState<string | undefined>(undefined)
+  const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
   const { apps, loading, loadingMore, error, hasMore, sentinelRef, retry } = useInfiniteScroll({
     category: activeCategory,
   })
@@ -25,103 +28,107 @@ export function HomeFeed({ featured, trending, newDrops, categoryApps }: HomeFee
     setActiveCategory(prev => prev === cat ? undefined : cat)
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
   const categoriesWithApps = CATEGORIES.filter(c => categoryApps[c]?.length > 0)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Hero strip */}
-      <div className="relative mb-10 overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4">
+      {/* Compact hero */}
+      <div className="relative py-10 overflow-hidden text-center">
         {/* Background orbs */}
-        <div className="absolute -top-16 -left-20 w-80 h-80 gradient-orb opacity-20" style={{ background: 'radial-gradient(circle, #FF2D9B, transparent 70%)' }} />
-        <div className="absolute -top-8 left-40 w-96 h-96 gradient-orb opacity-15" style={{ background: 'radial-gradient(circle, #6B21E8, transparent 70%)' }} />
-        <div className="absolute -top-20 right-0 w-64 h-64 gradient-orb opacity-15" style={{ background: 'radial-gradient(circle, #00B4FF, transparent 70%)' }} />
+        <div className="absolute -top-10 left-1/4 w-72 h-72 gradient-orb opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, #FF2D9B, transparent 70%)' }} />
+        <div className="absolute -top-4 right-1/4 w-80 h-80 gradient-orb opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle, #6B21E8, transparent 70%)' }} />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 gradient-orb opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #00B4FF, transparent 70%)' }} />
 
         <div className="relative">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 leading-tight">
-            <span className="gradient-text">Where vibe coders</span>
-            <br />
-            <span className="gradient-text">get discovered.</span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 leading-tight tracking-tight">
+            <span className="gradient-text">Where vibe coders get discovered.</span>
           </h1>
-          <p className="text-[var(--text-secondary)] text-sm sm:text-base mb-5">Find apps built with AI this week — try them, save them, share them.</p>
+          <p className="text-[var(--text-secondary)] text-sm sm:text-base mb-7 max-w-lg mx-auto">
+            Try AI-built apps from indie creators. Discover, save, and share the best vibes.
+          </p>
+
+          {/* Hero search */}
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto mb-7">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
+              <input
+                type="search"
+                placeholder="Search vibes, tools, creators..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl py-3.5 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6B21E8] focus:ring-2 focus:ring-[#6B21E8]/30 transition-all shadow-lg shadow-black/10"
+              />
+            </div>
+          </form>
 
           {/* Category pills */}
-          <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveCategory(undefined)}
-            className={`px-3 py-1 text-sm rounded-full font-medium transition-all ${
-              !activeCategory
-                ? 'bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] text-white'
-                : 'bg-[var(--card)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-strong)]'
-            }`}
-          >
-            All
-          </button>
-          {CATEGORIES.map(cat => (
-            <CategoryPill
-              key={cat}
-              category={cat}
-              size="md"
-              onClick={() => handleCategoryClick(cat)}
-              active={activeCategory === cat}
-            />
-          ))}
-        </div>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => setActiveCategory(undefined)}
+              className={`px-3 py-1 text-sm rounded-full font-medium transition-all ${
+                !activeCategory
+                  ? 'bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] text-white shadow-md'
+                  : 'bg-[var(--card)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-strong)]'
+              }`}
+            >
+              All
+            </button>
+            {CATEGORIES.map(cat => (
+              <CategoryPill
+                key={cat}
+                category={cat}
+                size="md"
+                onClick={() => handleCategoryClick(cat)}
+                active={activeCategory === cat}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Staff picks */}
-      {featured.length > 0 && (
-        <FeedSection title="Staff Picks ✨" apps={featured} size="featured" />
-      )}
+      {/* Feed sections */}
+      <div className="pb-8 space-y-0">
+        {featured.length > 0 && (
+          <FeedSection title="Staff Picks ✨" apps={featured} size="featured" />
+        )}
+        {trending.length > 0 && (
+          <FeedSection title="Trending Now 🔥" apps={trending} href="/trending" />
+        )}
+        {newDrops.length > 0 && (
+          <FeedSection title="New This Week" apps={newDrops} href="/new" />
+        )}
+        {!activeCategory && categoriesWithApps.map(cat => (
+          <FeedSection
+            key={cat}
+            title={cat}
+            apps={categoryApps[cat]}
+            href={`/category/${cat.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+          />
+        ))}
 
-      {/* Trending */}
-      {trending.length > 0 && (
-        <FeedSection title="Trending Now 🔥" apps={trending} href="/trending" />
-      )}
-
-      {/* New drops */}
-      {newDrops.length > 0 && (
-        <FeedSection title="New This Week" apps={newDrops} href="/new" />
-      )}
-
-      {/* Category rows — only show when no filter active */}
-      {!activeCategory && categoriesWithApps.map(cat => (
-        <FeedSection
-          key={cat}
-          title={cat}
-          apps={categoryApps[cat]}
-          href={`/category/${cat.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
-        />
-      ))}
-
-      {/* Creator CTA */}
-      {!activeCategory && (
-        <div className="gradient-border rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="font-bold text-[var(--text-primary)] mb-1">Built something with AI?</h3>
-            <p className="text-sm text-[var(--text-secondary)]">Submit your app and get discovered by thousands of builders.</p>
-          </div>
-          <Link href="/dashboard/submit" className="btn-primary text-sm flex-shrink-0">
-            List Your App →
-          </Link>
-        </div>
-      )}
-
-      {/* Infinite scroll grid */}
-      <section>
-        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-          {activeCategory ? activeCategory : 'All Apps'}
-        </h2>
-        <FeedGrid
-          apps={apps}
-          loading={loading}
-          loadingMore={loadingMore}
-          error={error}
-          hasMore={hasMore}
-          sentinelRef={sentinelRef}
-          onRetry={retry}
-        />
-      </section>
+        {/* Infinite scroll grid */}
+        <section className="pt-4">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+            {activeCategory ? activeCategory : 'All Apps'}
+          </h2>
+          <FeedGrid
+            apps={apps}
+            loading={loading}
+            loadingMore={loadingMore}
+            error={error}
+            hasMore={hasMore}
+            sentinelRef={sentinelRef}
+            onRetry={retry}
+          />
+        </section>
+      </div>
     </div>
   )
 }
