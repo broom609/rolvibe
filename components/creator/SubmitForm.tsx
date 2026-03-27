@@ -80,8 +80,10 @@ export function SubmitAppForm() {
   const [submitting, setSubmitting] = useState(false)
   const [tagInput, setTagInput] = useState('')
   const [thumbnailUploading, setThumbnailUploading] = useState(false)
+  const [screenshotsUploading, setScreenshotsUploading] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
+  const screenshotsInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState<Partial<FormData>>({
     pricing_type: 'free',
     price_dollars: '',
@@ -251,6 +253,78 @@ export function SubmitAppForm() {
   function handleThumbnailRemove() {
     setFormData(prev => ({ ...prev, thumbnail_url: '' }))
     if (thumbnailInputRef.current) thumbnailInputRef.current.value = ''
+  }
+
+  async function handleScreenshotChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    if ((formData.screenshots?.length || 0) + files.length > 4) {
+      toast.error('You can upload up to 4 screenshots')
+      e.target.value = ''
+      return
+    }
+
+    const invalid = files.find(file => !isAcceptedThumbnail(file))
+    if (invalid) {
+      toast.error('Screenshots must be JPG, PNG, WebP, or GIF images')
+      e.target.value = ''
+      return
+    }
+
+    const tooLarge = files.find(file => file.size > MAX_THUMBNAIL_SIZE_BYTES)
+    if (tooLarge) {
+      toast.error('Each screenshot must be under 5MB')
+      e.target.value = ''
+      return
+    }
+
+    setScreenshotsUploading(true)
+    try {
+      const userId = currentUserId || (await supabase.auth.getUser()).data.user?.id || null
+      if (!userId) {
+        toast.error('Please sign in to upload screenshots')
+        return
+      }
+
+      const uploadedUrls: string[] = []
+      for (const file of files) {
+        const filePath = `screenshots/${userId}/${Date.now()}-${sanitizeFileName(file.name)}`
+        const { error } = await supabase.storage
+          .from('thumbnails')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            contentType: file.type || undefined,
+            upsert: false,
+          })
+
+        if (error) {
+          console.error('Screenshot upload failed:', error)
+          toast.error('Upload failed: ' + error.message)
+          return
+        }
+
+        const { data: { publicUrl } } = supabase.storage.from('thumbnails').getPublicUrl(filePath)
+        uploadedUrls.push(publicUrl)
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        screenshots: [...(prev.screenshots || []), ...uploadedUrls],
+      }))
+      toast.success('Screenshots uploaded')
+    } finally {
+      setScreenshotsUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  function removeScreenshot(url: string) {
+    setFormData(prev => ({
+      ...prev,
+      screenshots: (prev.screenshots || []).filter((item) => item !== url),
+    }))
+    if (screenshotsInputRef.current) screenshotsInputRef.current.value = ''
   }
 
   const pricingType = formData.pricing_type || 'free'
@@ -478,6 +552,55 @@ export function SubmitAppForm() {
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 className="hidden"
                 onChange={handleThumbnailChange}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Screenshots <span className="text-[var(--text-muted)] font-normal">(up to 4)</span>
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {(formData.screenshots || []).map((url) => (
+                  <div key={url} className="relative w-[160px] aspect-video rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted-surface)]">
+                    <Image src={url} alt="App screenshot" fill className="object-cover" unoptimized />
+                    <button
+                      type="button"
+                      onClick={() => removeScreenshot(url)}
+                      className="absolute top-2 right-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80 transition-colors"
+                      aria-label="Remove screenshot"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+
+                {(formData.screenshots?.length || 0) < 4 && (
+                  <button
+                    type="button"
+                    onClick={() => screenshotsInputRef.current?.click()}
+                    className="w-[160px] aspect-video rounded-xl border-2 border-dashed border-[var(--border)] hover:border-[#6B21E8] transition-colors bg-[var(--muted-surface)] flex flex-col items-center justify-center text-center px-3"
+                  >
+                    {screenshotsUploading ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin text-[var(--text-muted)] mb-2" />
+                        <span className="text-xs text-[var(--text-muted)]">Uploading screenshots...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera size={20} className="text-[var(--text-muted)] mb-2" />
+                        <span className="text-xs text-[var(--text-muted)]">Upload screenshots</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <input
+                ref={screenshotsInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="hidden"
+                onChange={handleScreenshotChange}
               />
             </div>
 

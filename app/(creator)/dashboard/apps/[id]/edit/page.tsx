@@ -1,13 +1,16 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { redirect, notFound } from 'next/navigation'
 import { EditAppClient } from './EditAppClient'
 import type { App } from '@/types'
 
 export default async function EditAppPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect(`/login?next=/dashboard/apps/${id}/edit`)
 
   const { data: app } = await supabase
     .from('apps')
@@ -16,12 +19,7 @@ export default async function EditAppPage({ params }: { params: Promise<{ id: st
     .eq('creator_id', user.id)
     .single()
 
-  if (!app) notFound()
+  if (!app) redirect('/dashboard/apps')
 
-  return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Edit App</h1>
-      <EditAppClient app={app as App} />
-    </div>
-  )
+  return <EditAppClient initialApp={app as App} />
 }

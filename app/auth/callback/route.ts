@@ -3,6 +3,7 @@ import { getServerAuthOrigin, normalizeNextPath } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWelcomeEmail } from '@/lib/resend'
+import { isAdminEmail } from '@/lib/admin'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -85,7 +86,8 @@ export async function GET(request: NextRequest) {
               username,
               display_name: googleName || null,
               avatar_url: user.user_metadata?.avatar_url || null,
-              role: 'user',
+              role: isAdminEmail(email) ? 'admin' : 'user',
+              is_verified: isAdminEmail(email),
             })
 
             if (profileInsertError) {
@@ -104,6 +106,17 @@ export async function GET(request: NextRequest) {
                 })
               }
             }
+          }
+
+          if (isAdminEmail(email)) {
+            await adminClient
+              .from('profiles')
+              .update({
+                role: 'admin',
+                is_verified: true,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', user.id)
           }
         } catch (profileBootstrapError) {
           console.error('Auth callback: unexpected profile bootstrap error', {

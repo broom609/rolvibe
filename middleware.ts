@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { ADMIN_EMAIL } from '@/lib/admin'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -38,11 +39,17 @@ export async function middleware(request: NextRequest) {
   if (user && (isDashboard || isAdmin)) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_banned')
       .eq('id', user.id)
       .single()
 
-    if (isAdmin && profile?.role !== 'admin') {
+    if (profile?.is_banned) {
+      return NextResponse.redirect(new URL('/?banned=1', request.url))
+    }
+
+    const isAdminEmail = (user.email || '').trim().toLowerCase() === ADMIN_EMAIL
+
+    if (isAdmin && (!isAdminEmail || profile?.role !== 'admin')) {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }

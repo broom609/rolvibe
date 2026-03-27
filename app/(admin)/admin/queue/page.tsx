@@ -1,21 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { redirect } from 'next/navigation'
+import { requirePageAdmin } from '@/lib/admin'
 import { QueueClient } from './QueueClient'
 import type { App } from '@/types'
 
 export default async function AdminQueuePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/')
+  await requirePageAdmin('/admin/queue')
 
   const admin = createAdminClient()
   const { data: apps } = await admin
     .from('apps')
-    .select('*, creator:profiles(id, username, display_name, email:id)')
+    .select('*, creator:profiles(id, username, display_name, avatar_url, is_verified), review:app_reviews(*)')
     .eq('status', 'pending')
     .order('submitted_at', { ascending: true })
 

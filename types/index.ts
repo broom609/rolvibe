@@ -9,6 +9,7 @@ export interface Profile {
   username: string
   display_name: string | null
   avatar_url: string | null
+  banner_url?: string | null
   bio: string | null
   website_url: string | null
   twitter_handle: string | null
@@ -20,6 +21,8 @@ export interface Profile {
   total_try_count: number
   total_earnings_cents: number
   is_verified: boolean
+  is_banned?: boolean
+  follower_count?: number
   created_at: string
   updated_at: string
 }
@@ -53,12 +56,14 @@ export interface App {
   favorite_count: number
   score: number
   admin_notes: string | null
+  demo_video_url?: string | null
   submitted_at: string
   published_at: string | null
   created_at: string
   updated_at: string
   // Joined
   creator?: Profile
+  review?: AppReview | null
 }
 
 export interface AppTry {
@@ -99,6 +104,41 @@ export interface Purchase {
   stripe_payment_intent: string | null
   status: 'pending' | 'completed' | 'refunded'
   created_at: string
+}
+
+export interface Subscription {
+  id: string
+  app_id: string
+  subscriber_id: string
+  creator_id: string
+  stripe_subscription_id: string | null
+  status: 'active' | 'cancelled' | 'past_due'
+  current_period_end: string | null
+  created_at: string
+}
+
+export interface Follow {
+  follower_id: string
+  creator_id: string
+  created_at: string
+}
+
+export interface AppReview {
+  app_id: string
+  overall_score: number
+  visual_quality_score: number
+  description_quality_score: number
+  trust_score: number
+  launch_quality_score: number
+  thumbnail_quality_score: number
+  category_fit_score: number
+  spam_risk_score: number
+  recommendation: 'approve' | 'review' | 'reject'
+  reasons: string[]
+  flags: string[]
+  created_at: string
+  updated_at: string
+  checked_at: string
 }
 
 export const CATEGORIES = [

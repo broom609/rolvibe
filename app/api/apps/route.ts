@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { slugify } from '@/lib/utils'
 import { sendAppSubmittedEmail } from '@/lib/resend'
+import { computeAppReview } from '@/lib/app-review'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -76,6 +77,28 @@ export async function POST(request: NextRequest) {
   if (profile?.role === 'user') {
     await admin.from('profiles').update({ role: 'creator' }).eq('id', user.id)
   }
+
+  const review = computeAppReview({
+    name,
+    tagline,
+    description,
+    app_url,
+    category,
+    tags,
+    built_with,
+    pricing_type,
+    thumbnail_url,
+    screenshots,
+  })
+
+  await admin.from('app_reviews').upsert({
+    app_id: app.id,
+    ...review,
+    checked_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  })
+
+  await admin.from('apps').update({ score: review.overall_score }).eq('id', app.id)
 
   // Send confirmation email
   try {

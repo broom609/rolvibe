@@ -1,16 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { ExternalLink } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { requirePageAdmin } from '@/lib/admin'
+import { AdminReportsClient } from './AdminReportsClient'
 
 export default async function AdminReportsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/')
+  await requirePageAdmin('/admin/reports')
 
   const admin = createAdminClient()
   const { data: reports } = await admin
@@ -22,60 +15,7 @@ export default async function AdminReportsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Reports</h1>
-      {(!reports || reports.length === 0) ? (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-12 text-center">
-          <p className="text-[var(--text-secondary)]">No open reports. 🎉</p>
-        </div>
-      ) : (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="border-b border-[var(--border)]">
-              <tr className="text-xs text-[var(--text-muted)] text-left">
-                <th className="px-4 py-3 font-medium">App</th>
-                <th className="px-4 py-3 font-medium">Reason</th>
-                <th className="px-4 py-3 font-medium hidden md:table-cell">Reporter</th>
-                <th className="px-4 py-3 font-medium hidden md:table-cell">Date</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-[var(--card-hover)] transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-[var(--text-primary)] truncate max-w-[150px]">
-                      {(report.app as { name: string })?.name}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs px-2 py-0.5 bg-red-900/30 text-red-400 rounded-full capitalize">
-                      {report.reason}
-                    </span>
-                    {report.details && (
-                      <p className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] truncate">{report.details}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)] hidden md:table-cell">
-                    @{(report.reporter as { username: string })?.username || 'anonymous'}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[var(--text-secondary)] hidden md:table-cell">
-                    {formatDate(report.created_at)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      {(report.app as { slug: string })?.slug && (
-                        <a href={`/apps/${(report.app as { slug: string }).slug}`} target="_blank"
-                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
-                          <ExternalLink size={10} /> View
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <AdminReportsClient initialReports={(reports || []) as never[]} />
     </div>
   )
 }

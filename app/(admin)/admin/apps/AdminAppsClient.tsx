@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { App, AppStatus } from '@/types'
-import { createClient } from '@/lib/supabase/client'
 import { formatTryCount } from '@/lib/utils'
 
 export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
@@ -13,14 +12,20 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
 
   const filtered = statusFilter ? apps.filter(a => a.status === statusFilter) : apps
 
-  async function updateApp(id: string, update: Partial<App>) {
-    const supabase = createClient()
-    const { error } = await supabase.from('apps').update(update).eq('id', id)
-    if (error) {
-      toast.error(error.message)
-    } else {
-      setApps(prev => prev.map(a => a.id === id ? { ...a, ...update } : a))
+  async function updateApp(id: string, update: Record<string, unknown>) {
+    const res = await fetch(`/api/admin/apps/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    })
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      toast.error(body.error || 'Update failed')
+      return
     }
+
+    setApps(prev => prev.map(a => a.id === id ? body.app : a))
+    toast.success('App updated')
   }
 
   return (
@@ -65,6 +70,11 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={app.status} />
+                  {app.review && (
+                    <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                      Score {app.review.overall_score} · {app.review.recommendation}
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-[var(--text-secondary)] hidden md:table-cell">
                   {formatTryCount(app.try_count || 0)}
@@ -84,6 +94,12 @@ export function AdminAppsClient({ apps: initialApps }: { apps: App[] }) {
                       className={`text-xs transition-colors ${app.is_featured ? 'text-yellow-400 hover:text-yellow-300' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                     >
                       {app.is_featured ? 'Unfeature' : 'Feature'}
+                    </button>
+                    <button
+                      onClick={() => updateApp(app.id, { refreshReview: true })}
+                      className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                    >
+                      Refresh Score
                     </button>
                     {app.status === 'active' && (
                       <a href={`/apps/${app.slug}`} target="_blank"

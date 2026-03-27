@@ -79,6 +79,16 @@ export function QueueClient({ apps: initialApps }: { apps: App[] }) {
               <p className="text-xs text-[var(--text-muted)] mb-3">
                 By @{app.creator?.username} · Submitted {formatDate(app.submitted_at)}
               </p>
+              {app.review && (
+                <div className="mb-3 rounded-lg border border-[var(--border)] bg-[var(--muted-surface)] px-3 py-2">
+                  <p className="text-xs font-medium text-[var(--text-primary)]">
+                    AI review: {app.review.overall_score}/100 · {app.review.recommendation}
+                  </p>
+                  {app.review.reasons?.length > 0 && (
+                    <p className="text-xs text-[var(--text-muted)] mt-1">{app.review.reasons[0]}</p>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-2">
                 <a
                   href={app.app_url}

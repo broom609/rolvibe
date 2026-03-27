@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { LayoutDashboard, PlusCircle, AppWindow, DollarSign, Settings, UserCircle2, Shield, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, AppWindow, DollarSign, Settings, UserCircle2, Shield, LogOut, Menu, X, Bookmark } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/dashboard/apps', label: 'My Apps', icon: AppWindow },
   { href: '/dashboard/submit', label: 'Submit App', icon: PlusCircle },
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle2 },
+  { href: '/dashboard/library', label: 'Library', icon: Bookmark },
   { href: '/dashboard/earnings', label: 'Earnings', icon: DollarSign },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]

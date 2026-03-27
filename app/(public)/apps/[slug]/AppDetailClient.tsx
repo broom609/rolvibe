@@ -10,6 +10,7 @@ import { PriceBadge } from '@/components/ui/PriceBadge'
 import { BuiltWithBadge } from '@/components/ui/BuiltWithBadge'
 import { TrustBadge } from '@/components/ui/TrustBadge'
 import { CreatorCard } from '@/components/creator/CreatorCard'
+import { FollowCreatorButton } from '@/components/creator/FollowCreatorButton'
 import { AppPreview } from '@/components/app/AppPreview'
 import { ReportModal } from '@/components/app/ReportModal'
 import { CommentsSection } from '@/components/community/CommentsSection'
@@ -20,36 +21,65 @@ import { track } from '@/lib/analytics'
 import { toast } from 'sonner'
 import { CATEGORY_GRADIENTS } from '@/types'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 
 interface AppDetailClientProps {
   app: App
+  currentUserId: string | null
+  creatorFollowerCount: number
+  viewerIsFollowingCreator: boolean
+  viewerHasAccess: boolean
 }
 
-export function AppDetailClient({ app }: AppDetailClientProps) {
+export function AppDetailClient({
+  app,
+  currentUserId,
+  creatorFollowerCount,
+  viewerIsFollowingCreator,
+  viewerHasAccess,
+}: AppDetailClientProps) {
   const { isFavorited, count: favoriteCount, toggle: toggleFavorite } = useFavorite(app.id, app.favorite_count)
   const [showPreview, setShowPreview] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [activeScreenshot, setActiveScreenshot] = useState(0)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const gradient = CATEGORY_GRADIENTS[app.category] || 'from-gray-500 to-gray-700'
 
   useEffect(() => {
     fetch(`/api/apps/${app.id}/try`, { method: 'POST' })
     track('app_viewed', { app_id: app.id, category: app.category, pricing_type: app.pricing_type })
-
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserId(user?.id || null)
-    })
   }, [app.id, app.category, app.pricing_type])
 
-  function handleTryNow() {
+  async function handleTryNow() {
     track('app_tried', { app_id: app.id, source: 'detail_page' })
+    if (app.pricing_type === 'coming_soon') return
+
     if (app.pricing_type === 'free') {
       setShowPreview(true)
-    } else {
-      const dest = (app as App & { external_payment_url?: string }).external_payment_url || app.app_url
-      window.open(dest, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (viewerHasAccess) {
+      window.open(app.app_url, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (!currentUserId) {
+      window.location.href = `/login?next=${encodeURIComponent(`/apps/${app.slug}`)}`
+      return
+    }
+
+    setCheckoutLoading(true)
+    const res = await fetch(`/api/apps/${app.id}/checkout`, { method: 'POST' })
+    const body = await res.json().catch(() => ({}))
+    setCheckoutLoading(false)
+
+    if (!res.ok) {
+      toast.error(body.error || 'Checkout could not be started')
+      return
+    }
+
+    if (body.url) {
+      window.location.href = body.url
     }
   }
 
@@ -68,6 +98,7 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
 
   const tryLabel =
     app.pricing_type === 'free' ? 'Try Vibe — Free' :
+    viewerHasAccess ? 'Open App' :
     app.pricing_type === 'paid' ? `Buy — $${((app.price_cents || 0) / 100).toFixed(2)}` :
     app.pricing_type === 'subscription' ? `Subscribe — $${((app.subscription_price_cents || 0) / 100).toFixed(2)}/mo` :
     app.pricing_type === 'coming_soon' ? 'Coming Soon' :
@@ -234,11 +265,11 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
 
               <button
                 onClick={handleTryNow}
-                disabled={app.pricing_type === 'coming_soon'}
+                disabled={app.pricing_type === 'coming_soon' || checkoutLoading}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-[#FF2D9B] to-[#6B21E8] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-purple-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Zap size={15} fill="currentColor" />
-                {tryLabel}
+                {checkoutLoading ? 'Loading checkout...' : tryLabel}
               </button>
 
               <button
@@ -255,14 +286,23 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               </button>
 
               <div className="flex gap-2">
-                <a
-                  href={app.app_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm"
-                >
-                  <ExternalLink size={13} /> Open
-                </a>
+                {app.pricing_type === 'free' || viewerHasAccess ? (
+                  <a
+                    href={app.app_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm"
+                  >
+                    <ExternalLink size={13} /> Open
+                  </a>
+                ) : (
+                  <button
+                    onClick={handleTryNow}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm"
+                  >
+                    <ExternalLink size={13} /> Checkout
+                  </button>
+                )}
                 <button
                   onClick={handleShare}
                   className="px-3 py-2 rounded-lg bg-[var(--muted-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
@@ -280,7 +320,17 @@ export function AppDetailClient({ app }: AppDetailClientProps) {
               )}
             </div>
 
-            {app.creator && <CreatorCard creator={app.creator} />}
+            {app.creator && (
+              <div className="space-y-3">
+                <CreatorCard creator={app.creator} />
+                <FollowCreatorButton
+                  creatorId={app.creator.id}
+                  initialFollowerCount={creatorFollowerCount}
+                  initialFollowing={viewerIsFollowingCreator}
+                  isSelf={currentUserId === app.creator.id}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

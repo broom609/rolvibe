@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { ShieldCheck, Zap, Github, Linkedin, Twitter, Globe } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { AppCard } from '@/components/feed/AppCard'
+import { FollowCreatorButton } from '@/components/creator/FollowCreatorButton'
 import { formatTryCount, formatDate } from '@/lib/utils'
 import type { App, Profile } from '@/types'
 
@@ -46,6 +47,23 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
 
   const { profile, apps } = data
   const totalTries = apps.reduce((sum, app) => sum + (app.try_count || 0), 0)
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const [{ count: followerCount }, followState] = await Promise.all([
+    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('creator_id', profile.id),
+    user
+      ? supabase
+          .from('follows')
+          .select('creator_id')
+          .eq('creator_id', profile.id)
+          .eq('follower_id', user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+  const isSelf = user?.id === profile.id
+  const isFollowing = Boolean('data' in followState && followState.data)
 
   const socialLinks = [
     profile.github_url && {
@@ -141,7 +159,17 @@ export default async function CreatorProfilePage({ params }: { params: Promise<{
               <Zap size={11} />
               {formatTryCount(totalTries)} total tries
             </span>
+            <span>{followerCount || 0} followers</span>
             <span>{apps.length} {apps.length === 1 ? 'vibe' : 'vibes'}</span>
+          </div>
+
+          <div className="mt-4">
+            <FollowCreatorButton
+              creatorId={profile.id}
+              initialFollowerCount={followerCount || 0}
+              initialFollowing={isFollowing}
+              isSelf={isSelf}
+            />
           </div>
         </div>
       </div>

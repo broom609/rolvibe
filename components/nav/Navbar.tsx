@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User, Shield, PencilLine } from 'lucide-react'
+import { Bell, Plus, LogOut, Settings, LayoutDashboard, Search, User, Shield, PencilLine, Bookmark } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { RolvibeLogo } from '@/components/brand/RolvibeLogo'
@@ -132,6 +132,13 @@ export function Navbar() {
                     onClick={() => setMenuOpen(false)}
                   >
                     <LayoutDashboard size={14} /> Dashboard
+                  </Link>
+                  <Link
+                    href="/dashboard/library"
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--muted-surface)] transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Bookmark size={14} /> Library
                   </Link>
                   <Link
                     href="/dashboard/settings"
